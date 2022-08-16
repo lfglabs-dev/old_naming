@@ -12,7 +12,7 @@ end
 
 # @event
 # func name_update(name : felt, address : felt):
-# end
+# end 
 
 @storage_var
 func _address_to_domain(address : felt, index : felt) -> (subdomain : felt):
@@ -42,9 +42,11 @@ func write_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
     _write_domain_util(domain_len, domain, data.address)
     let (hashed_domain) = hash_domain(domain_len, domain)
     _domain_data.write(hashed_domain, data)
-end
 
-func _write_domain_util(domain_len : felt, domain : felt*, address : felt):
+    return ()
+end 
+
+func _write_domain_util{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(domain_len : felt, domain : felt*, address : felt):
     if domain_len == 0:
         return ()
     end
