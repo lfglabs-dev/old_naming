@@ -7,6 +7,7 @@ from starkware.cairo.common.hash import hash2
 struct DomainData:
     member owner : felt  # a starknet.id
     member address : felt  # a contract address
+    member expiry : felt  # expiration date
 end
 
 # @event

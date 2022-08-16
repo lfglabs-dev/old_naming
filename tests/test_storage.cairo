@@ -26,7 +26,7 @@ func test_domain_to_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ra
     alloc_locals
 
     let (domain1 : felt*) = alloc()
-    let domainData_instance = DomainData(owner='starkware starknet.id', address='0x..')
+    let domainData_instance = DomainData(owner='starkware starknet.id', address='0x..', 1)
     _domain_data.write(
         2140142446875703710710518347945668701142580220800197817593363984239628985951,
         domainData_instance,
@@ -45,7 +45,7 @@ func test_domain_to_tokenid{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ra
     arguments
 ):
     alloc_locals
-    let domainData_instance = DomainData(owner=123, address='0x..')
+    let domainData_instance = DomainData(owner=123, address='0x..', 1)
     _domain_data.write(
         2140142446875703710710518347945668701142580220800197817593363984239628985951,
         domainData_instance,
@@ -59,7 +59,7 @@ func test_domain_to_tokenid{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ra
     assert owner = 123
 
     let (domain2 : felt*) = alloc()
-    let domainData_instance = DomainData(owner=123, address='0x..')
+    let domainData_instance = DomainData(owner=123, address='0x..', 1)
     assert domain2[0] = 'guthl'
     assert domain2[1] = 'starkware'
 
