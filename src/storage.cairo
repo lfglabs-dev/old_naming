@@ -36,16 +36,15 @@ func hash_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     return (hashed_domain)
 end
 
-func write_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func write_domain_data{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     domain_len : felt, domain : felt*, data : DomainData
 ):
-    _write_domain_util(domain_len, domain, data.address)
     let (hashed_domain) = hash_domain(domain_len, domain)
     _domain_data.write(hashed_domain, data)
     return ()
 end
 
-func _write_domain_util{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func write_address_to_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     domain_len : felt, domain : felt*, address : felt
 ):
     if domain_len == 0:
@@ -54,7 +53,7 @@ func _write_domain_util{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
 
     tempvar new_len = domain_len - 1
     _address_to_domain.write(address, new_len, domain[new_len])
-    return _write_domain_util(new_len, domain, address)
+    return write_address_to_domain(new_len, domain, address)
 end
 
 func _address_to_domain_util{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(

@@ -5,7 +5,7 @@ from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.hash import hash2
 from starkware.cairo.common.alloc import alloc
 
-from src.storage import _domain_data, hash_domain, write_domain, _address_to_domain_util
+from src.storage import _domain_data, hash_domain, _address_to_domain_util
 
 @view
 func domain_to_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
