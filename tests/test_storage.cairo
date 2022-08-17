@@ -1,8 +1,9 @@
 %lang starknet
-from src.main import domain_to_address, address_to_domain, domain_to_tokenid
+from src.main import domain_to_address, address_to_domain, domain_to_token_id
 from src.storage import DomainData, _address_to_domain, _domain_data
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.alloc import alloc
+from starkware.cairo.common.uint256 import Uint256
 
 @external
 func test_address_to_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
@@ -26,7 +27,8 @@ func test_domain_to_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ra
     alloc_locals
 
     let (domain1 : felt*) = alloc()
-    let domainData_instance = DomainData(owner='starkware starknet.id', address='0x..', 1)
+    let tokenid = Uint256('starkware starknet.id', 0)
+    let domainData_instance = DomainData(owner=tokenid, address='0x..', 1)
     _domain_data.write(
         2140142446875703710710518347945668701142580220800197817593363984239628985951,
         domainData_instance,
@@ -41,11 +43,12 @@ func test_domain_to_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ra
 end
 
 @external
-func test_domain_to_tokenid{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func test_domain_to_token_id{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     arguments
 ):
     alloc_locals
-    let domainData_instance = DomainData(owner=123, address='0x..', 1)
+    let tokenid = Uint256(123, 0)
+    let domainData_instance = DomainData(owner=tokenid, address='0x..', 1)
     _domain_data.write(
         2140142446875703710710518347945668701142580220800197817593363984239628985951,
         domainData_instance,
@@ -55,17 +58,17 @@ func test_domain_to_tokenid{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ra
     assert domain1[0] = 'starkware'
 
     # Should return domain data owner
-    let (owner) = domain_to_tokenid(1, domain1)
-    assert owner = 123
+    let (owner) = domain_to_token_id(1, domain1)
+    assert owner = tokenid
 
     let (domain2 : felt*) = alloc()
-    let domainData_instance = DomainData(owner=123, address='0x..', 1)
+    let domainData_instance = DomainData(owner=tokenid, address='0x..', 1)
     assert domain2[0] = 'guthl'
     assert domain2[1] = 'starkware'
 
     # Should return domain data owner
-    let (owner) = domain_to_tokenid(2, domain2)
-    assert owner = 123
+    let (owner) = domain_to_token_id(2, domain2)
+    assert owner = tokenid
 
     return ()
 end

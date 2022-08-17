@@ -3,9 +3,10 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.hash import hash2
+from starkware.cairo.common.uint256 import Uint256
 
 struct DomainData:
-    member owner : felt  # a starknet.id
+    member owner : Uint256  # a starknet.id
     member address : felt  # a contract address
     member expiry : felt  # expiration date
 end
