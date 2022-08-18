@@ -7,7 +7,7 @@ from starkware.cairo.common.uint256 import Uint256
 
 struct DomainData:
     member owner : Uint256  # a starknet.id
-    member address : felt  # a contract address
+    member address : felt  # a wallet address
     member expiry : felt  # expiration date
 end
 
