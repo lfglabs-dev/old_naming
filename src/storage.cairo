@@ -23,6 +23,15 @@ end
 func _domain_data(hashed_domain : felt) -> (data : DomainData):
 end
 
+@storage_var
+func _admin_address() -> (admin_address : felt):
+end
+
+@storage_var
+func _pricing_contract() -> (pricing_contract : felt):
+end
+
+
 func hash_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     domain_len : felt, domain : felt*
 ) -> (hashed_domain : felt):
