@@ -84,7 +84,36 @@ end
 func set_domain_to_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     domain_len : felt, domain : felt*, address : felt
 ):
-    ret
+    # fetch domain_data
+    let (hashed_domain) = hash_domain(domain_len, domain)
+    let (domain_data) = _domain_data.read(hashed_root_domain)
+
+    # find starknet_id
+    tempvar starknet_id = domain_data.owner
+    if owner.low == 0 and owner.high == 0:
+        # no owner
+        if domain_len == 0:
+            assert 1 = 0
+        end
+        tempvar starknet_id = domain_to_token_id(domain_len - 1, domain + 1)
+    end
+
+    # check ownership
+    let (contract_addr) = starknetid_contract.read()
+    let (starknet_id_owner) = StarknetID.ownerOf(contract_addr, starknet_id)
+    let (caller) = get_caller_address()
+    assert starknet_id_owner = caller
+
+    let (hashed_root_domain) = hash_domain(1, domain + domain_len - 1)
+    let (root_domain_data) = _domain_data.read(hashed_root_domain)
+
+    # check expiry of root domain
+    let (current_timestamp) = get_block_timestamp()
+    assert_le(root_domain_data.expiry, current_timestamp)
+
+    # if subdomain, check key
+    if domain_len != 1:
+    end
 end
 
 @external
