@@ -1,5 +1,5 @@
 %lang starknet
-from starkware.cairo.common.math import assert_nn
+from starkware.cairo.common.math import assert_nn, assert_le
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.hash import hash2
@@ -11,23 +11,28 @@ from starkware.starknet.common.syscalls import get_contract_address
 
 from src.storage import (
     _domain_data,
-    hash_domain, 
+    hash_domain,
     _address_to_domain_util,
     _address_to_domain,
     write_domain_data,
     write_address_to_domain,
     DomainData,
     _admin_address,
-    _pricing_contract
+    _pricing_contract,
 )
 from src.interface.starknetid import StarknetID
 from src.interface.pricing import Pricing
+from src.registration import _register_domain, starknetid_contract
 
-from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20 
- 
-# EXTERNALS CONTRACT ADDRESSES
+from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 
-const STARKNETID_CONTRACT = 0x0798e884450c19e072d6620fefdbeb7387d0453d3fd51d95f5ace1f17633d88b
+@constructor
+func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    starknetid_contract_addr : felt
+):
+    starknetid_contract.write(starknetid_contract_addr)
+    return ()
+end
 
 # USER VIEW FUNCTIONS
 
@@ -98,7 +103,8 @@ func buy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
 
     # Verify that the starknet.id is owned by the caller
     let (caller) = get_caller_address()
-    let (starknet_id_owner) = StarknetID.ownerOf(STARKNETID_CONTRACT, token_id)
+    let (contract_addr) = starknetid_contract.read()
+    let (starknet_id_owner) = StarknetID.ownerOf(contract_addr, token_id)
     assert caller = starknet_id_owner
 
     # Verify that the domain is not registered already or expired
@@ -135,7 +141,8 @@ func renew{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
 
     # Verify that the domain is owned by the caller
     let (caller) = get_caller_address()
-    let (starknetIdOwner) = StarknetID.ownerOf(STARKNETID_CONTRACT, token_id)
+    let (contract_addr) = starknetid_contract.read()
+    let (starknetIdOwner) = StarknetID.ownerOf(contract_addr, token_id)
     assert caller = starknetIdOwner
 
     # Verify that the domain is not expired
@@ -160,94 +167,73 @@ end
 func _token_id_to_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     token_id : Uint256
 ) -> (owner_address : felt):
-    let (owner_address) = StarknetID.ownerOf(STARKNETID_CONTRACT, token_id)
-
+    let (contract_addr) = starknetid_contract.read()
+    let (owner_address) = StarknetID.ownerOf(contract_addr, token_id)
     return (owner_address)
-end
-
-func _register_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    token_id : Uint256,
-    domain_len : felt,
-    domain : felt*,
-    erc20 : felt,
-    price : Uint256,
-    data : DomainData,
-    caller : felt,
-):
-    let (contract) = get_contract_address()
-
-    # Make the user pay
-    IERC20.transferFrom(erc20, caller, contract, price)
-
-    # Write info on starknet.id and write info on storage data
-    write_domain_data(domain_len, domain, data)
-    write_address_to_domain(domain_len, domain, caller)
-    StarknetID.set_verifier_data(STARKNETID_CONTRACT, token_id, 'name', domain[domain_len - 1])
-
-    return ()
 end
 
 # ADMIN EXTERNAL FUNCTIONS
 
 @external
 func set_admin{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(address : felt):
-
-    #Verify that caller is admin
+    # Verify that caller is admin
     let (caller) = get_caller_address()
     let (admin_address) = _admin_address.read()
     assert caller = admin_address
 
-    #Write new admin
+    # Write new admin
     _admin_address.write(address)
 
-    ret
+    return ()
 end
 
 @external
 func set_domain_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     domain_len : felt, domain : felt*, token_id : Uint256
 ):
-    #Verify that caller is admin
+    # Verify that caller is admin
     let (caller) = get_caller_address()
     let (admin_address) = _admin_address.read()
     assert caller = admin_address
 
-    #Write domain owner
+    # Write domain owner
     let (hashed_domain) = hash_domain(domain_len, domain)
     let (current_domain_data) = _domain_data.read(hashed_domain)
-    let new_domain_data = DomainData(token_id, current_domain_data.address, current_domain_data.expiry)
+    let new_domain_data = DomainData(
+        token_id, current_domain_data.address, current_domain_data.expiry
+    )
     _domain_data.write(hashed_domain, new_domain_data)
 
-    ret
+    return ()
 end
 
 @external
 func set_pricing_contract{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     address : felt
 ):
-    #Verify that caller is admin
-    let (caller) = get_caller_address() 
-    let (admin_address) = _pricing_contract.read()
+    # Verify that caller is admin
+    let (caller) = get_caller_address()
+    let (admin_address) = _admin_address.read()
     assert caller = admin_address
 
-    #Write domain owner
+    # Write domain owner
     _pricing_contract.write(address)
 
-    ret
+    return ()
 end
 
 @external
 func transfer_balance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     erc20 : felt, amount : Uint256
 ):
-    #Verify that caller is admin
+    # Verify that caller is admin
     let (caller) = get_caller_address()
     let (admin_address) = _admin_address.read()
     assert caller = admin_address
     let (contract) = get_contract_address()
 
-    #Redeem funds
+    # Redeem funds
     IERC20.transferFrom(erc20, contract, caller, amount)
 
-    ret
+    return ()
 end
