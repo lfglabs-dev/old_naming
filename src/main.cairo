@@ -22,7 +22,15 @@ from src.storage import (
 )
 from src.interface.starknetid import StarknetID
 from src.interface.pricing import Pricing
-from src.registration import _register_domain, starknetid_contract, assert_control_domain
+from src.registration import (
+    _register_domain,
+    starknetid_contract,
+    assert_control_domain,
+    domain_to_addr_update,
+    addr_to_domain_update,
+    starknet_id_update,
+    reset_subdomains_update,
+)
 from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 
 @constructor
@@ -84,10 +92,11 @@ func set_domain_to_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ran
     domain_len : felt, domain : felt*, address : felt
 ):
     let (caller) = get_caller_address()
-    let (hashed_root_domain, domain_data) = assert_control_domain(domain_len, domain, caller)
+    let (_, _) = assert_control_domain(domain_len, domain, caller)
     let new_data : DomainData = DomainData(
         domain_data.owner, address, domain_data.expiry, domain_data.key, domain_data.parent_key
     )
+    domain_to_addr_update.emit(domain_len, domain, address)
     write_domain_data(domain_len, domain, new_data)
     return ()
 end
@@ -97,7 +106,8 @@ func set_address_to_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ran
     address : felt, domain_len : felt, domain : felt*
 ):
     let (caller) = get_caller_address()
-    let (hashed_root_domain, domain_data) = assert_control_domain(domain_len, domain, caller)
+    let (_, _) = assert_control_domain(domain_len, domain, caller)
+    addr_to_domain_update.emit(address, domain_len, domain)
     write_address_to_domain(domain_len, domain, address)
     return ()
 end
@@ -137,8 +147,9 @@ func buy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
 
     # Register
     _register_domain(token_id, domain, erc20, price, data, caller)
+    starknet_id_update.emit(1, new (domain), token_id, expiry)
 
-    ret
+    return ()
 end
 
 @external
@@ -168,7 +179,7 @@ func renew{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
 
     # Register
     _register_domain(token_id, domain, erc20, price, data, caller)
-
+    starknet_id_update.emit(1, new (domain), token_id, expiry)
     return ()
 end
 
@@ -190,6 +201,7 @@ func transfer_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
         current_domain_data.parent_key,
     )
     _domain_data.write(hashed_domain, new_domain_data)
+    starknet_id_update.emit(1, new (domain), target_token_id, current_domain_data.expiry)
 
     return ()
 end
@@ -212,6 +224,7 @@ func reset_subdomains{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
         current_domain_data.parent_key,
     )
     _domain_data.write(hashed_domain, new_domain_data)
+    reset_subdomains_update.emit(domain_len, domain)
 
     return ()
 end
@@ -251,7 +264,7 @@ func set_domain_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
         current_domain_data.parent_key,
     )
     _domain_data.write(hashed_domain, new_domain_data)
-
+    starknet_id_update.emit(1, new (domain), token_id, current_domain_data.expiry)
     return ()
 end
 

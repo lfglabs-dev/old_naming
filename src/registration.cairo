@@ -15,7 +15,19 @@ from src.interface.starknetid import StarknetID
 from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 
 @event
-func name_update(name : felt, starknet_id : Uint256, address : felt):
+func domain_to_addr_update(domain_len : felt, domain : felt*, address : felt):
+end
+
+@event
+func addr_to_domain_update(address : felt, domain_len : felt, domain : felt*):
+end
+
+@event
+func starknet_id_update(domain_len : felt, domain : felt*, owner : Uint256, expiry : felt):
+end
+
+@event
+func reset_subdomains_update(domain_len : felt, domain : felt*):
 end
 
 @storage_var
