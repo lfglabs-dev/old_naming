@@ -124,8 +124,8 @@ func book_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     domain_hash : felt
 ):
     let (current_timestamp) = get_block_timestamp()
-    let (expiry_data) = booked_domain.read(domain_hash)
-    assert_le(expiry_data.expiration, current_timestamp)
+    let (booking_data) = booked_domain.read(domain_hash)
+    assert_le(booking_data.expiry, current_timestamp)
     let (caller) = get_caller_address()
     booked_domain.write(domain_hash, (caller, current_timestamp + 3600))
     return ()
@@ -148,10 +148,10 @@ func buy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     let (hashed_domain) = hash_domain(1, new (domain))
 
     # stop front running/mev
-    let (expiry_data) = booked_domain.read(hashed_domain)
-    let (booked) = is_le(current_timestamp, expiry_data.expiration)
+    let (booking_data : (owner : felt, expiry : felt)) = booked_domain.read(hashed_domain)
+    let (booked) = is_le(current_timestamp, booking_data.expiry)
     if booked == TRUE:
-        assert booked_domain.owner = caller
+        assert booking_data.owner = caller
     end
 
     let (domain_data) = _domain_data.read(hashed_domain)
