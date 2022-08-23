@@ -35,9 +35,11 @@ from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    starknetid_contract_addr : felt
+    starknetid_contract_addr, pricing_contract_addr, admin
 ):
     starknetid_contract.write(starknetid_contract_addr)
+    _pricing_contract.write(pricing_contract_addr)
+    _admin_address.write(admin)
     return ()
 end
 
@@ -91,13 +93,16 @@ end
 func set_domain_to_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     domain_len : felt, domain : felt*, address : felt
 ):
+    alloc_locals
     let (caller) = get_caller_address()
     let (_, _) = assert_control_domain(domain_len, domain, caller)
+    let (hashed_domain) = hash_domain(domain_len, domain)
+    let (domain_data) = _domain_data.read(hashed_domain)
     let new_data : DomainData = DomainData(
         domain_data.owner, address, domain_data.expiry, domain_data.key, domain_data.parent_key
     )
-    domain_to_addr_update.emit(domain_len, domain, address)
     write_domain_data(domain_len, domain, new_data)
+    domain_to_addr_update.emit(domain_len, domain, address)
     return ()
 end
 
@@ -105,10 +110,11 @@ end
 func set_address_to_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     address : felt, domain_len : felt, domain : felt*
 ):
+    alloc_locals
     let (caller) = get_caller_address()
     let (_, _) = assert_control_domain(domain_len, domain, caller)
-    addr_to_domain_update.emit(address, domain_len, domain)
     write_address_to_domain(domain_len, domain, address)
+    addr_to_domain_update.emit(address, domain_len, domain)
     return ()
 end
 
@@ -187,6 +193,7 @@ end
 func transfer_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     domain_len : felt, domain : felt*, target_token_id : Uint256
 ):
+    alloc_locals
     let (caller) = get_caller_address()
     let (_, _) = assert_control_domain(domain_len, domain, caller)
 
@@ -210,6 +217,7 @@ end
 func reset_subdomains{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     domain_len : felt, domain : felt*
 ):
+    alloc_locals
     let (caller) = get_caller_address()
     let (_, _) = assert_control_domain(domain_len, domain, caller)
 
@@ -217,7 +225,7 @@ func reset_subdomains{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     let (hashed_domain) = hash_domain(domain_len, domain)
     let (current_domain_data) = _domain_data.read(hashed_domain)
     let new_domain_data = DomainData(
-        current_domain_data.token_id,
+        current_domain_data.owner,
         current_domain_data.address,
         current_domain_data.expiry,
         current_domain_data.key + 1,
@@ -248,6 +256,7 @@ end
 func set_domain_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     domain_len : felt, domain : felt*, token_id : Uint256
 ):
+    alloc_locals
     # Verify that caller is admin
     let (caller) = get_caller_address()
     let (admin_address) = _admin_address.read()

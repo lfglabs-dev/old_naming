@@ -49,7 +49,7 @@ func _register_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
 
     # Write info on starknet.id and write info on storage data
     write_domain_data(1, new (domain), data)
-    write_address_to_domain(1, new (domain), caller)
+
     let (contract_contract_addr) = starknetid_contract.read()
     StarknetID.set_verifier_data(contract_contract_addr, token_id, 'name', domain)
 
