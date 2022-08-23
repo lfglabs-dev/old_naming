@@ -85,7 +85,7 @@ func test_set_admin{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
     set_admin(1234)
     let (changed_address) = _admin_address.read()
     assert changed_address = 1234
-
+    %{ stop_prank_callable() %}
     return ()
 end
 
@@ -101,6 +101,8 @@ func test_set_pricing_contract{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*,
     let (changed_address) = _pricing_contract.read()
     assert changed_address = 1234
 
+    %{ stop_prank_callable() %}
+
     return ()
 end
 
@@ -112,11 +114,11 @@ func test_set_domain_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ran
 
     # test case : admin is caller
     _admin_address.write(123)
-    set_domain_owner(1, new ('starkware'), Uint256(8, 0))
-    let (domain_data) = _domain_data.read(
-        2140142446875703710710518347945668701142580220800197817593363984239628985951
-    )
+    set_domain_owner(1, new (123456789), Uint256(8, 0))
+    let (hashed) = hash_domain(1, new (123456789))
+    let (domain_data) = _domain_data.read(hashed)
     assert domain_data.owner = Uint256(8, 0)
+    %{ stop_prank_callable() %}
 
     return ()
 end

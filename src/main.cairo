@@ -120,7 +120,7 @@ end
 
 @external
 func buy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    token_id : Uint256, domain : felt, days : felt
+    token_id : Uint256, address : felt, domain : felt, days : felt
 ):
     alloc_locals
     # # TODO : let time to stop front running
@@ -149,7 +149,7 @@ func buy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     let expiry = current_timestamp + 86400 * days  # # 1 day = 86400s
     let (pricing_contract) = _pricing_contract.read()
     let (erc20, price) = Pricing.compute_buy_price(pricing_contract, domain, days)
-    let data = DomainData(token_id, caller, expiry, 1, 0)
+    let data = DomainData(token_id, address, expiry, 1, 0)
 
     # Register
     _register_domain(token_id, domain, erc20, price, data, caller)
@@ -265,6 +265,7 @@ func set_domain_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     # Write domain owner
     let (hashed_domain) = hash_domain(domain_len, domain)
     let (current_domain_data) = _domain_data.read(hashed_domain)
+    let low = token_id.low
     let new_domain_data = DomainData(
         token_id,
         current_domain_data.address,
@@ -273,7 +274,7 @@ func set_domain_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
         current_domain_data.parent_key,
     )
     _domain_data.write(hashed_domain, new_domain_data)
-    starknet_id_update.emit(1, new (domain), token_id, current_domain_data.expiry)
+    # starknet_id_update.emit(1, new (domain), token_id, current_domain_data.expiry)
     return ()
 end
 
