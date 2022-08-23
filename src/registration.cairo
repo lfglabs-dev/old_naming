@@ -34,6 +34,10 @@ end
 func starknetid_contract() -> (address : felt):
 end
 
+@storage_var
+func booked_domain(hashed_domain : felt) -> (booking_data : (owner : felt, expiry : felt)):
+end
+
 func _register_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     token_id : Uint256,
     domain : felt,

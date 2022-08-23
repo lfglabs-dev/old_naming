@@ -30,6 +30,7 @@ from src.registration import (
     addr_to_domain_update,
     starknet_id_update,
     reset_subdomains_update,
+    booked_domain,
 )
 from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 
@@ -119,11 +120,22 @@ func set_address_to_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ran
 end
 
 @external
+func book_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    domain_hash : felt
+):
+    let (current_timestamp) = get_block_timestamp()
+    let (expiry_data) = booked_domain.read(domain_hash)
+    assert_le(expiry_data.expiration, current_timestamp)
+    let (caller) = get_caller_address()
+    booked_domain.write(domain_hash, (caller, current_timestamp + 3600))
+    return ()
+end
+
+@external
 func buy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    token_id : Uint256, address : felt, domain : felt, days : felt
+    token_id : Uint256, domain : felt, days : felt, address : felt
 ):
     alloc_locals
-    # # TODO : let time to stop front running
 
     # Verify that the starknet.id is owned by the caller
     let (caller) = get_caller_address()
@@ -134,6 +146,14 @@ func buy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     # Verify that the domain is not registered already or expired
     let (current_timestamp) = get_block_timestamp()
     let (hashed_domain) = hash_domain(1, new (domain))
+
+    # stop front running/mev
+    let (expiry_data) = booked_domain.read(hashed_domain)
+    let (booked) = is_le(current_timestamp, expiry_data.expiration)
+    if booked == TRUE:
+        assert booked_domain.owner = caller
+    end
+
     let (domain_data) = _domain_data.read(hashed_domain)
     let (is_expired) = is_le(domain_data.expiry, current_timestamp)
 
