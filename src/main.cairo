@@ -194,6 +194,28 @@ func transfer_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
     return ()
 end
 
+@external
+func reset_subdomains{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    domain_len : felt, domain : felt*
+):
+    let (caller) = get_caller_address()
+    let (_, _) = assert_control_domain(domain_len, domain, caller)
+
+    # Write domain owner
+    let (hashed_domain) = hash_domain(domain_len, domain)
+    let (current_domain_data) = _domain_data.read(hashed_domain)
+    let new_domain_data = DomainData(
+        current_domain_data.token_id,
+        current_domain_data.address,
+        current_domain_data.expiry,
+        current_domain_data.key + 1,
+        current_domain_data.parent_key,
+    )
+    _domain_data.write(hashed_domain, new_domain_data)
+
+    return ()
+end
+
 # ADMIN EXTERNAL FUNCTIONS
 
 @external
