@@ -39,7 +39,7 @@ func test_write_domain_data{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ra
 ):
     # todo: write domain data on naming_contract and starknetid
     let tokenid = Uint256(123, 0)
-    let data = DomainData(tokenid, 456, 1)
+    let data = DomainData(tokenid, 456, 1, 1, 0)
     write_domain_data(4, new ('this', 'is', 'a', 'domain'), data)
 
     let (address) = domain_to_address(4, new ('this', 'is', 'a', 'domain'))

@@ -22,8 +22,7 @@ from src.storage import (
 )
 from src.interface.starknetid import StarknetID
 from src.interface.pricing import Pricing
-from src.registration import _register_domain, starknetid_contract
-
+from src.registration import _register_domain, starknetid_contract, assert_control_domain
 from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 
 @constructor
@@ -84,48 +83,28 @@ end
 func set_domain_to_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     domain_len : felt, domain : felt*, address : felt
 ):
-    # fetch domain_data
-    let (hashed_domain) = hash_domain(domain_len, domain)
-    let (domain_data) = _domain_data.read(hashed_root_domain)
-
-    # find starknet_id
-    tempvar starknet_id = domain_data.owner
-    if owner.low == 0 and owner.high == 0:
-        # no owner
-        if domain_len == 0:
-            assert 1 = 0
-        end
-        tempvar starknet_id = domain_to_token_id(domain_len - 1, domain + 1)
-    end
-
-    # check ownership
-    let (contract_addr) = starknetid_contract.read()
-    let (starknet_id_owner) = StarknetID.ownerOf(contract_addr, starknet_id)
     let (caller) = get_caller_address()
-    assert starknet_id_owner = caller
-
-    let (hashed_root_domain) = hash_domain(1, domain + domain_len - 1)
-    let (root_domain_data) = _domain_data.read(hashed_root_domain)
-
-    # check expiry of root domain
-    let (current_timestamp) = get_block_timestamp()
-    assert_le(root_domain_data.expiry, current_timestamp)
-
-    # if subdomain, check key
-    if domain_len != 1:
-    end
+    let (hashed_root_domain, domain_data) = assert_control_domain(domain_len, domain, caller)
+    let new_data : DomainData = DomainData(
+        domain_data.owner, address, domain_data.expiry, domain_data.key, domain_data.parent_key
+    )
+    write_domain_data(domain_len, domain, new_data)
+    return ()
 end
 
 @external
 func set_address_to_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     address : felt, domain_len : felt, domain : felt*
 ):
-    ret
+    let (caller) = get_caller_address()
+    let (hashed_root_domain, domain_data) = assert_control_domain(domain_len, domain, caller)
+    write_address_to_domain(domain_len, domain, address)
+    return ()
 end
 
 @external
 func buy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    token_id : Uint256, domain_len : felt, domain : felt*, days : felt
+    token_id : Uint256, domain : felt, days : felt
 ):
     alloc_locals
     # # TODO : let time to stop front running
@@ -138,7 +117,7 @@ func buy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
 
     # Verify that the domain is not registered already or expired
     let (current_timestamp) = get_block_timestamp()
-    let (hashed_domain) = hash_domain(domain_len, domain)
+    let (hashed_domain) = hash_domain(1, new (domain))
     let (domain_data) = _domain_data.read(hashed_domain)
     let (is_expired) = is_le(domain_data.expiry, current_timestamp)
 
@@ -153,18 +132,18 @@ func buy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     # Get expiry and price
     let expiry = current_timestamp + 86400 * days  # # 1 day = 86400s
     let (pricing_contract) = _pricing_contract.read()
-    let (erc20, price) = Pricing.compute_buy_price(pricing_contract, domain[domain_len - 1], days)
-    let data = DomainData(token_id, caller, expiry)
+    let (erc20, price) = Pricing.compute_buy_price(pricing_contract, domain, days)
+    let data = DomainData(token_id, caller, expiry, 1, 0)
 
     # Register
-    _register_domain(token_id, domain_len, domain, erc20, price, data, caller)
+    _register_domain(token_id, domain, erc20, price, data, caller)
 
     ret
 end
 
 @external
 func renew{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    token_id : Uint256, domain_len : felt, domain : felt*, days : felt
+    token_id : Uint256, domain : felt, days : felt
 ):
     alloc_locals
 
@@ -176,29 +155,43 @@ func renew{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
 
     # Verify that the domain is not expired
     let (current_timestamp) = get_block_timestamp()
-    let (hashed_domain) = hash_domain(domain_len, domain)
+    let (hashed_domain) = hash_domain(1, new (domain))
     let (domain_data) = _domain_data.read(hashed_domain)
     let (is_expired) = is_le(domain_data.expiry, current_timestamp)
     assert is_expired = FALSE
 
     # Get expiry and price
-    let expiry = domain_data.expiry + 86400 * days  # # 1 day = 86400s
+    let expiry = domain_data.expiry + 86400 * days  # 1 day = 86400s
     let (pricing_contract) = _pricing_contract.read()
-    let (erc20, price) = Pricing.compute_buy_price(pricing_contract, domain[domain_len - 1], days)
-    let data = DomainData(token_id, caller, expiry)
+    let (erc20, price) = Pricing.compute_buy_price(pricing_contract, domain, days)
+    let data = DomainData(token_id, caller, expiry, domain_data.key, 0)
 
     # Register
-    _register_domain(token_id, domain_len, domain, erc20, price, data, caller)
+    _register_domain(token_id, domain, erc20, price, data, caller)
 
-    ret
+    return ()
 end
 
-func _token_id_to_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    token_id : Uint256
-) -> (owner_address : felt):
-    let (contract_addr) = starknetid_contract.read()
-    let (owner_address) = StarknetID.ownerOf(contract_addr, token_id)
-    return (owner_address)
+@external
+func transfer_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    domain_len : felt, domain : felt*, target_token_id : Uint256
+):
+    let (caller) = get_caller_address()
+    let (_, _) = assert_control_domain(domain_len, domain, caller)
+
+    # Write domain owner
+    let (hashed_domain) = hash_domain(domain_len, domain)
+    let (current_domain_data) = _domain_data.read(hashed_domain)
+    let new_domain_data = DomainData(
+        target_token_id,
+        current_domain_data.address,
+        current_domain_data.expiry,
+        current_domain_data.key,
+        current_domain_data.parent_key,
+    )
+    _domain_data.write(hashed_domain, new_domain_data)
+
+    return ()
 end
 
 # ADMIN EXTERNAL FUNCTIONS
@@ -229,7 +222,11 @@ func set_domain_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     let (hashed_domain) = hash_domain(domain_len, domain)
     let (current_domain_data) = _domain_data.read(hashed_domain)
     let new_domain_data = DomainData(
-        token_id, current_domain_data.address, current_domain_data.expiry
+        token_id,
+        current_domain_data.address,
+        current_domain_data.expiry,
+        current_domain_data.key,
+        current_domain_data.parent_key,
     )
     _domain_data.write(hashed_domain, new_domain_data)
 

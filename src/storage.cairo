@@ -9,6 +9,8 @@ struct DomainData:
     member owner : Uint256  # a starknet.id
     member address : felt  # a wallet address
     member expiry : felt  # expiration date
+    member key : felt  # a uniq id, updated on transfer
+    member parent_key : felt  # key of parent domain
 end
 
 # @event
@@ -30,7 +32,6 @@ end
 @storage_var
 func _pricing_contract() -> (pricing_contract : felt):
 end
-
 
 func hash_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     domain_len : felt, domain : felt*
