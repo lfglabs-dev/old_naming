@@ -325,7 +325,7 @@ func transfer_balance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     let (contract) = get_contract_address()
 
     # Redeem funds
-    IERC20.transferFrom(erc20, caller, amount)
+    IERC20.transfer(erc20, caller, amount)
 
     return ()
 end
