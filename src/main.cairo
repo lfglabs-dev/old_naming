@@ -174,6 +174,7 @@ func buy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     # Register
     _register_domain(token_id, domain, erc20, price, data, caller)
     starknet_id_update.emit(1, new (domain), token_id, expiry)
+    domain_to_addr_update.emit(1, new (domain), address)
 
     return ()
 end
