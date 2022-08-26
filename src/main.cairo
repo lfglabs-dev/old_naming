@@ -53,12 +53,24 @@ func domain_to_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     let (hashed_domain) = hash_domain(domain_len, domain)
     let (domain_data) = _domain_data.read(hashed_domain)
     if domain_data.address == FALSE:
-        let (token_id : Uint256) = domain_to_token_id(domain_len, domain)
         return (0)
     else:
         return (domain_data.address)
     end
 end
+
+@view
+func domain_to_expiry{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    domain_len : felt, domain : felt*
+) -> (expiry : felt):
+    let (hashed_domain) = hash_domain(domain_len, domain)
+    let (domain_data) = _domain_data.read(hashed_domain)
+    if domain_data.expiry == FALSE:
+        return (0)
+    else:
+        return (domain_data.expiry)
+    end
+end 
 
 @view
 func address_to_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
