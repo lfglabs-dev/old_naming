@@ -1,6 +1,7 @@
 %lang starknet
 from src.main import (
     domain_to_address,
+    domain_to_expiry,
     address_to_domain,
     set_admin,
     set_pricing_contract,
@@ -44,6 +45,9 @@ func test_write_domain_data{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ra
 
     let (address) = domain_to_address(4, new ('this', 'is', 'a', 'domain'))
     assert address = 456
+
+    let (expiry) = domain_to_expiry(4, new ('this', 'is', 'a', 'domain'))
+    assert expiry = 1
 
     return ()
 end
