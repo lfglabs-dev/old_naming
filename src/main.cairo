@@ -172,7 +172,7 @@ func buy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     let data = DomainData(token_id, address, expiry, 1, 0)
 
     # Register
-    _register_domain(token_id, domain, erc20, price, data, caller)
+    _register_domain(domain, erc20, price, data, caller)
     starknet_id_update.emit(1, new (domain), token_id, expiry)
     domain_to_addr_update.emit(1, new (domain), address)
 
@@ -181,20 +181,14 @@ end
 
 @external
 func renew{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    token_id : Uint256, domain : felt, days : felt
+    domain : felt, days : felt
 ):
     alloc_locals
-
-    # Verify that the domain is owned by the caller
-    let (caller) = get_caller_address()
-    let (contract_addr) = starknetid_contract.read()
-    let (starknetIdOwner) = StarknetID.ownerOf(contract_addr, token_id)
-    assert caller = starknetIdOwner
 
     # Verify that the domain is not expired
     let (current_timestamp) = get_block_timestamp()
     let (hashed_domain) = hash_domain(1, new (domain))
-    let (domain_data) = _domain_data.read(hashed_domain)
+    let (domain_data : DomainData) = _domain_data.read(hashed_domain)
     let (is_expired) = is_le(domain_data.expiry, current_timestamp)
     assert is_expired = FALSE
 
@@ -202,11 +196,12 @@ func renew{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     let expiry = domain_data.expiry + 86400 * days  # 1 day = 86400s
     let (pricing_contract) = _pricing_contract.read()
     let (erc20, price) = Pricing.compute_buy_price(pricing_contract, domain, days)
-    let data = DomainData(token_id, caller, expiry, domain_data.key, 0)
+    let data = DomainData(domain_data.owner, domain_data.address, expiry, domain_data.key, 0)
 
     # Register
-    _register_domain(token_id, domain, erc20, price, data, caller)
-    starknet_id_update.emit(1, new (domain), token_id, expiry)
+    let (caller) = get_caller_address()
+    _register_domain(domain, erc20, price, data, caller)
+    starknet_id_update.emit(1, new (domain), domain_data.owner, expiry)
     return ()
 end
 
