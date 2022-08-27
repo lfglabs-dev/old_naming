@@ -71,7 +71,7 @@ end
 @external
 func test_buy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(arguments):
     # Mock starknetID.ownerOf
-
+        
     # Test with a not registered domain
 
     # Test with a registered and expired domain

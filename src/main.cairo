@@ -25,7 +25,7 @@ from src.interface.pricing import Pricing
 from src.registration import (
     _register_domain,
     starknetid_contract,
-    assert_control_domain,
+   assert_control_domain,
     domain_to_addr_update,
     addr_to_domain_update,
     starknet_id_update,
@@ -108,7 +108,7 @@ func set_domain_to_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ran
 ):
     alloc_locals
     let (caller) = get_caller_address()
-    let (_, _) = assert_control_domain(domain_len, domain, caller)
+    assert_control_domain(domain_len, domain, caller)
     let (hashed_domain) = hash_domain(domain_len, domain)
     let (domain_data) = _domain_data.read(hashed_domain)
     let new_data : DomainData = DomainData(
@@ -123,9 +123,9 @@ end
 func set_address_to_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     address : felt, domain_len : felt, domain : felt*
 ):
-    alloc_locals
+    alloc_locals 
     let (caller) = get_caller_address()
-    let (_, _) = assert_control_domain(domain_len, domain, caller)
+    assert_control_domain(domain_len, domain, caller)
     write_address_to_domain(domain_len, domain, address)
     addr_to_domain_update.emit(address, domain_len, domain)
     return ()
@@ -178,7 +178,7 @@ func buy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     end
 
     # Get expiry and price
-    let expiry = current_timestamp + 86400 * days  # # 1 day = 86400s
+    let expiry = current_timestamp + 86400 * days  # 1 day = 86400s
     let (pricing_contract) = _pricing_contract.read()
     let (erc20, price) = Pricing.compute_buy_price(pricing_contract, domain, days)
     let data = DomainData(token_id, address, expiry, 1, 0)
@@ -223,7 +223,7 @@ func transfer_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
 ):
     alloc_locals
     let (caller) = get_caller_address()
-    let (_, _) = assert_control_domain(domain_len, domain, caller)
+    assert_control_domain(domain_len, domain, caller)
 
     # Write domain owner
     let (hashed_domain) = hash_domain(domain_len, domain)
@@ -247,7 +247,7 @@ func reset_subdomains{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
 ):
     alloc_locals
     let (caller) = get_caller_address()
-    let (_, _) = assert_control_domain(domain_len, domain, caller)
+    assert_control_domain(domain_len, domain, caller)
 
     # Write domain owner
     let (hashed_domain) = hash_domain(domain_len, domain)
