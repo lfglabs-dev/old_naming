@@ -61,17 +61,13 @@ end
 
 func assert_control_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     domain_len : felt, domain : felt*, caller : felt
-) -> (hashed_root_domain, domain_data : DomainData):
+):
     alloc_locals
-
-    # fetch domain_data
-    let (hashed_root_domain) = hash_domain(domain_len, domain)
-    let (domain_data) = _domain_data.read(hashed_root_domain)
 
     # check ownership
     let (contract_addr) = starknetid_contract.read()
     assert_is_owner(domain_len, domain, contract_addr, caller)
-
+    
     let (hashed_root_domain) = hash_domain(1, domain + domain_len - 1)
     let (root_domain_data) = _domain_data.read(hashed_root_domain)
 
@@ -79,7 +75,7 @@ func assert_control_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ran
     let (current_timestamp) = get_block_timestamp()
     assert_le(root_domain_data.expiry, current_timestamp)
 
-    return (hashed_root_domain, domain_data)
+    return ()
 end
 
 func assert_is_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
