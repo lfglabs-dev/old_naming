@@ -155,6 +155,8 @@ func buy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     let (starknet_id_owner) = StarknetID.ownerOf(contract_addr, token_id)
     assert caller = starknet_id_owner
 
+    # to run tests: %{ warp(1) %}
+
     # Verify that the domain is not registered already or expired
     let (current_timestamp) = get_block_timestamp()
     let (hashed_domain) = hash_domain(1, new (domain))
@@ -236,7 +238,7 @@ func transfer_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
         current_domain_data.parent_key,
     )
     _domain_data.write(hashed_domain, new_domain_data)
-    starknet_id_update.emit(1, new (domain), target_token_id, current_domain_data.expiry)
+    starknet_id_update.emit(domain_len, domain, target_token_id, current_domain_data.expiry)
 
     return ()
 end
