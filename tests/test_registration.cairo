@@ -54,7 +54,6 @@ func test_assert_control_domain{syscall_ptr : felt*, range_check_ptr, pedersen_p
     %{
         expect_revert(error_message="This domain is expired")
     %}  
-
     assert_control_domain(1, new ('ntm'), 789)
 
     return ()
