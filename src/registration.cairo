@@ -39,11 +39,7 @@ func booked_domain(hashed_domain : felt) -> (booking_data : (owner : felt, expir
 end
 
 func _register_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    domain : felt,
-    erc20 : felt,
-    price : Uint256,
-    data : DomainData,
-    caller : felt,
+    domain : felt, erc20 : felt, price : Uint256, data : DomainData, caller : felt
 ):
     let (contract) = get_contract_address()
 
@@ -53,8 +49,8 @@ func _register_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     # Write info on starknet.id and write info on storage data
     write_domain_data(1, new (domain), data)
 
-    #let (contract_contract_addr) = starknetid_contract.read()
-    #StarknetID.set_verifier_data(contract_contract_addr, token_id, 'name', domain)
+    # let (contract_contract_addr) = starknetid_contract.read()
+    # StarknetID.set_verifier_data(contract_contract_addr, token_id, 'name', domain)
 
     return ()
 end
@@ -67,7 +63,7 @@ func assert_control_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ran
     # check ownership
     let (contract_addr) = starknetid_contract.read()
     assert_is_owner(domain_len, domain, contract_addr, caller)
-    
+
     let (hashed_root_domain) = hash_domain(1, domain + domain_len - 1)
     let (root_domain_data) = _domain_data.read(hashed_root_domain)
 
@@ -81,6 +77,16 @@ func assert_control_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ran
     return ()
 end
 
+func fetch_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    contract_addr, starknet_id : Uint256
+) -> (owner : felt):
+    if starknet_id.low == 0 and starknet_id.high == 0:
+        return (0)
+    end
+    let (starknet_id_owner) = StarknetID.ownerOf(contract_addr, starknet_id)
+    return (starknet_id_owner)
+end
+
 func assert_is_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     domain_len : felt, domain : felt*, contract_addr : felt, caller : felt
 ) -> (key : felt):
@@ -88,7 +94,8 @@ func assert_is_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
     let (hashed_domain) = hash_domain(domain_len, domain)
     let (domain_data) = _domain_data.read(hashed_domain)
     let starknet_id = domain_data.owner
-    let (starknet_id_owner) = StarknetID.ownerOf(contract_addr, starknet_id)
+    # shitty crashing function
+    let (starknet_id_owner) = fetch_owner(contract_addr, starknet_id)
 
     if starknet_id_owner == caller:
         return (domain_data.key)
@@ -112,7 +119,8 @@ func assert_is_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
 
     # else
     let (parent_key) = assert_is_owner(domain_len - 1, domain + 1, contract_addr, caller)
-    assert parent_key = domain_data.parent_key
-
+    if domain_data.parent_key != 0:
+        assert parent_key = domain_data.parent_key
+    end
     return (domain_data.key)
 end

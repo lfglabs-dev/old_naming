@@ -155,7 +155,7 @@ func buy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     let (starknet_id_owner) = StarknetID.ownerOf(contract_addr, token_id)
     assert caller = starknet_id_owner
 
-    # %{ warp(1) %}
+    #%{ warp(1) %}
 
     # Verify that the domain is not registered already or expired
     let (current_timestamp) = get_block_timestamp()
@@ -230,17 +230,31 @@ func transfer_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
     # Write domain owner
     let (hashed_domain) = hash_domain(domain_len, domain)
     let (current_domain_data) = _domain_data.read(hashed_domain)
-    let new_domain_data = DomainData(
-        target_token_id,
-        current_domain_data.address,
-        current_domain_data.expiry,
-        current_domain_data.key,
-        current_domain_data.parent_key,
-    )
-    _domain_data.write(hashed_domain, new_domain_data)
-    starknet_id_update.emit(domain_len, domain, target_token_id, current_domain_data.expiry)
-
-    return ()
+    if current_domain_data.parent_key == 0:
+        let (hashed_parent_domain) = hash_domain(domain_len - 1, domain + 1)
+        let (next_domain_data) = _domain_data.read(hashed_parent_domain)
+        let new_domain_data = DomainData(
+            target_token_id,
+            current_domain_data.address,
+            current_domain_data.expiry,
+            current_domain_data.key,
+            next_domain_data.key,
+        )
+        _domain_data.write(hashed_domain, new_domain_data)
+        starknet_id_update.emit(domain_len, domain, target_token_id, current_domain_data.expiry)
+        return ()
+    else:
+        let new_domain_data = DomainData(
+            target_token_id,
+            current_domain_data.address,
+            current_domain_data.expiry,
+            current_domain_data.key,
+            current_domain_data.parent_key,
+        )
+        _domain_data.write(hashed_domain, new_domain_data)
+        starknet_id_update.emit(domain_len, domain, target_token_id, current_domain_data.expiry)
+        return ()
+    end
 end
 
 @external

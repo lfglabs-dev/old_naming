@@ -143,3 +143,36 @@ func test_transfer_domain{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : H
 
     return ()
 end
+
+@external
+func test_transfer_subdomain{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}():
+    alloc_locals
+    local starknet_id_contract
+    local naming_contract
+    %{
+        ids.starknet_id_contract = context.starknet_id_contract
+        ids.naming_contract = context.naming_contract
+        stop_prank_callable = start_prank(456)
+        stop_mock = mock_call(123, "transferFrom", [1])
+        warp(1)
+    %}
+
+    let token_id = Uint256(1, 0)
+    StarknetID.mint(starknet_id_contract, token_id)
+
+    let token_id2 = Uint256(2, 0)
+    StarknetID.mint(starknet_id_contract, token_id2)
+
+    # th0rgal encoded
+    let th0rgal_string = 28235132438
+
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 456)
+    Naming.transfer_domain(naming_contract, 2, new (th0rgal_string, th0rgal_string), token_id2)
+
+    %{
+        stop_prank_callable()
+        stop_mock()
+    %}
+
+    return ()
+end
