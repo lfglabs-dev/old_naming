@@ -25,7 +25,7 @@ from src.interface.pricing import Pricing
 from src.registration import (
     _register_domain,
     starknetid_contract,
-   assert_control_domain,
+    assert_control_domain,
     domain_to_addr_update,
     addr_to_domain_update,
     starknet_id_update,
@@ -70,7 +70,7 @@ func domain_to_expiry{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     else:
         return (domain_data.expiry)
     end
-end 
+end
 
 @view
 func address_to_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
@@ -123,7 +123,7 @@ end
 func set_address_to_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     address : felt, domain_len : felt, domain : felt*
 ):
-    alloc_locals 
+    alloc_locals
     let (caller) = get_caller_address()
     assert_control_domain(domain_len, domain, caller)
     write_address_to_domain(domain_len, domain, address)
