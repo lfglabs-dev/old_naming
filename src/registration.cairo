@@ -73,7 +73,7 @@ func assert_control_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ran
 
     # check expiry of root domain
     let (current_timestamp) = get_block_timestamp()
-    assert_le(root_domain_data.expiry, current_timestamp)
+    assert_le(current_timestamp, root_domain_data.expiry)
 
     return ()
 end
