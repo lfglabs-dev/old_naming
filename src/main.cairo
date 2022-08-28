@@ -121,13 +121,13 @@ end
 
 @external
 func set_address_to_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    address : felt, domain_len : felt, domain : felt*
+    domain_len : felt, domain : felt*
 ):
     alloc_locals
     let (caller) = get_caller_address()
     assert_control_domain(domain_len, domain, caller)
-    write_address_to_domain(domain_len, domain, address)
-    addr_to_domain_update.emit(address, domain_len, domain)
+    write_address_to_domain(domain_len, domain, caller)
+    addr_to_domain_update.emit(caller, domain_len, domain)
     return ()
 end
 
@@ -155,7 +155,7 @@ func buy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     let (starknet_id_owner) = StarknetID.ownerOf(contract_addr, token_id)
     assert caller = starknet_id_owner
 
-    # to run tests: %{ warp(1) %}
+    # %{ warp(1) %}
 
     # Verify that the domain is not registered already or expired
     let (current_timestamp) = get_block_timestamp()

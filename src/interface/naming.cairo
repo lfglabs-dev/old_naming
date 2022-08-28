@@ -22,7 +22,7 @@ namespace Naming:
     func set_domain_to_address(domain_len : felt, domain : felt*, address : felt):
     end
 
-    func set_address_to_domain(address : felt, domain_len : felt, domain : felt*):
+    func set_address_to_domain(domain_len : felt, domain : felt*):
     end
 
     func book_domain(domain_hash : felt):
