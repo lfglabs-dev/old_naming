@@ -189,6 +189,8 @@ func buy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     _register_domain(domain, erc20, price, data, caller)
     starknet_id_update.emit(1, new (domain), token_id, expiry)
     domain_to_addr_update.emit(1, new (domain), address)
+    let (contract) = starknetid_contract.read()
+    StarknetID.set_verifier_data(contract, token_id, 'name', hashed_domain)
 
     return ()
 end
@@ -230,6 +232,13 @@ func transfer_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
     # Write domain owner
     let (hashed_domain) = hash_domain(domain_len, domain)
     let (current_domain_data) = _domain_data.read(hashed_domain)
+    let (contract) = starknetid_contract.read()
+    let (naming_contract) = get_contract_address()
+    let (data : felt) = StarknetID.get_verifier_data(
+        contract, target_token_id, 'domain', naming_contract
+    )
+    # ensure target doesn't already have a domain
+    assert data = 0
     if current_domain_data.parent_key == 0:
         let (hashed_parent_domain) = hash_domain(domain_len - 1, domain + 1)
         let (next_domain_data) = _domain_data.read(hashed_parent_domain)
@@ -241,7 +250,10 @@ func transfer_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
             next_domain_data.key,
         )
         _domain_data.write(hashed_domain, new_domain_data)
+        starknet_id_update.emit(0, new (), current_domain_data.owner, 0)
         starknet_id_update.emit(domain_len, domain, target_token_id, current_domain_data.expiry)
+        StarknetID.set_verifier_data(contract, current_domain_data.owner, 'name', 0)
+        StarknetID.set_verifier_data(contract, target_token_id, 'name', hashed_domain)
         return ()
     else:
         let new_domain_data = DomainData(
@@ -252,7 +264,10 @@ func transfer_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
             current_domain_data.parent_key,
         )
         _domain_data.write(hashed_domain, new_domain_data)
+        starknet_id_update.emit(0, new (), current_domain_data.owner, 0)
         starknet_id_update.emit(domain_len, domain, target_token_id, current_domain_data.expiry)
+        StarknetID.set_verifier_data(contract, current_domain_data.owner, 'name', 0)
+        StarknetID.set_verifier_data(contract, target_token_id, 'name', hashed_domain)
         return ()
     end
 end
@@ -345,7 +360,6 @@ func transfer_balance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     let (caller) = get_caller_address()
     let (admin_address) = _admin_address.read()
     assert caller = admin_address
-    let (contract) = get_contract_address()
 
     # Redeem funds
     IERC20.transfer(erc20, caller, amount)
