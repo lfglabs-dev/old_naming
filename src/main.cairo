@@ -235,10 +235,12 @@ func transfer_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
     let (contract) = starknetid_contract.read()
     let (naming_contract) = get_contract_address()
     let (data : felt) = StarknetID.get_verifier_data(
-        contract, target_token_id, 'domain', naming_contract
+        contract, target_token_id, 'name', naming_contract
     )
     # ensure target doesn't already have a domain
-    assert data = 0
+    with_attr error_message("Target token_id already has a domain"):
+        assert data = 0
+    end
     if current_domain_data.parent_key == 0:
         let (hashed_parent_domain) = hash_domain(domain_len - 1, domain + 1)
         let (next_domain_data) = _domain_data.read(hashed_parent_domain)

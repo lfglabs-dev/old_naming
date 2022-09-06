@@ -169,6 +169,11 @@ func test_transfer_subdomain{syscall_ptr : felt*, range_check_ptr, pedersen_ptr 
     Naming.buy(naming_contract, token_id, th0rgal_string, 365, 456)
     Naming.transfer_domain(naming_contract, 2, new (th0rgal_string, th0rgal_string), token_id2)
 
+        %{
+        expect_revert(error_message="Target token_id already has a domain")
+    %}  
+    Naming.transfer_domain(naming_contract, 1, new (th0rgal_string), token_id2)
+
     %{
         stop_prank_callable()
         stop_mock()
