@@ -31,6 +31,7 @@ from src.registration import (
     starknet_id_update,
     reset_subdomains_update,
     booked_domain,
+    mint_domain,
 )
 from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 
@@ -155,8 +156,6 @@ func buy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     let (starknet_id_owner) = StarknetID.ownerOf(contract_addr, token_id)
     assert caller = starknet_id_owner
 
-    #%{ warp(1) %}
-
     # Verify that the domain is not registered already or expired
     let (current_timestamp) = get_block_timestamp()
     let (hashed_domain) = hash_domain(1, new (domain))
@@ -179,19 +178,7 @@ func buy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         assert is_expired = TRUE
     end
 
-    # Get expiry and price
-    let expiry = current_timestamp + 86400 * days  # 1 day = 86400s
-    let (pricing_contract) = _pricing_contract.read()
-    let (erc20, price) = Pricing.compute_buy_price(pricing_contract, domain, days)
-    let data = DomainData(token_id, address, expiry, 1, 0)
-
-    # Register
-    _register_domain(domain, erc20, price, data, caller)
-    starknet_id_update.emit(1, new (domain), token_id, expiry)
-    domain_to_addr_update.emit(1, new (domain), address)
-    let (contract) = starknetid_contract.read()
-    StarknetID.set_verifier_data(contract, token_id, 'name', hashed_domain)
-
+    mint_domain(current_timestamp, days, caller, address, hashed_domain, token_id, domain)
     return ()
 end
 

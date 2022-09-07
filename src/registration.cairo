@@ -8,7 +8,9 @@ from src.storage import (
     write_address_to_domain,
     hash_domain,
     _domain_data,
+    _pricing_contract,
 )
+from src.interface.pricing import Pricing
 from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp
 from starkware.cairo.common.math import assert_nn, assert_le
 from src.interface.starknetid import StarknetID
@@ -36,6 +38,27 @@ end
 
 @storage_var
 func booked_domain(hashed_domain : felt) -> (booking_data : (owner : felt, expiry : felt)):
+end
+
+func mint_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    current_timestamp, days, caller, address, hashed_domain, token_id : Uint256, domain
+):
+    alloc_locals
+
+    # Get expiry and price
+    let expiry = current_timestamp + 86400 * days  # 1 day = 86400s
+    let (pricing_contract) = _pricing_contract.read()
+    let (erc20, price) = Pricing.compute_buy_price(pricing_contract, domain, days)
+    let data = DomainData(token_id, address, expiry, 1, 0)
+
+    # Register
+    _register_domain(domain, erc20, price, data, caller)
+    starknet_id_update.emit(1, new (domain), token_id, expiry)
+    domain_to_addr_update.emit(1, new (domain), address)
+    let (contract) = starknetid_contract.read()
+    StarknetID.set_verifier_data(contract, token_id, 'name', hashed_domain)
+
+    return ()
 end
 
 func _register_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
