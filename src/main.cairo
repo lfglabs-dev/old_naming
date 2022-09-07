@@ -23,7 +23,6 @@ from src.storage import (
 from src.interface.starknetid import StarknetID
 from src.interface.pricing import Pricing
 from src.registration import (
-    _register_domain,
     starknetid_contract,
     assert_control_domain,
     domain_to_addr_update,
@@ -31,6 +30,7 @@ from src.registration import (
     starknet_id_update,
     reset_subdomains_update,
     booked_domain,
+    pay_domain,
     mint_domain,
 )
 from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
@@ -178,7 +178,8 @@ func buy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         assert is_expired = TRUE
     end
 
-    mint_domain(current_timestamp, days, caller, address, hashed_domain, token_id, domain)
+    let (expiry) = pay_domain(current_timestamp, days, caller, domain)
+    mint_domain(expiry, address, hashed_domain, token_id, domain)
     return ()
 end
 
@@ -203,7 +204,14 @@ func renew{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
 
     # Register
     let (caller) = get_caller_address()
-    _register_domain(domain, erc20, price, data, caller)
+    let (contract) = get_contract_address()
+
+    # Make the user pay
+    IERC20.transferFrom(erc20, caller, contract, price)
+
+    # Write info on starknet.id and write info on storage data
+    write_domain_data(1, new (domain), data)
+
     starknet_id_update.emit(1, new (domain), domain_data.owner, expiry)
     return ()
 end
@@ -324,6 +332,7 @@ func set_domain_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     _domain_data.write(hashed_domain, new_domain_data)
     starknet_id_update.emit(0, new (), current_domain_data.owner, 0)
     starknet_id_update.emit(domain_len, domain, token_id, current_domain_data.expiry)
+    let (contract) = starknetid_contract.read()
     StarknetID.set_verifier_data(contract, current_domain_data.owner, 'name', 0)
     StarknetID.set_verifier_data(contract, token_id, 'name', hashed_domain)
 

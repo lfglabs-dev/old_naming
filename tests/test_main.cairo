@@ -16,6 +16,7 @@ from src.storage import (
     _pricing_contract,
     _domain_data,
 )
+from src.registration import starknetid_contract
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.uint256 import Uint256
@@ -71,7 +72,7 @@ end
 @external
 func test_buy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(arguments):
     # Mock starknetID.ownerOf
-        
+
     # Test with a not registered domain
 
     # Test with a registered and expired domain
@@ -114,7 +115,13 @@ end
 func test_set_domain_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     arguments
 ):
-    %{ stop_prank_callable = start_prank(123) %}
+    tempvar starknet_id_contract
+    %{
+        stop_prank_callable = start_prank(123)
+        ids.starknet_id_contract = deploy_contract("./lib/starknet_id/src/StarknetId.cairo").contract_address
+    %}
+
+    starknetid_contract.write(starknet_id_contract)
 
     # test case : admin is caller
     _admin_address.write(123)

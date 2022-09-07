@@ -40,40 +40,28 @@ end
 func booked_domain(hashed_domain : felt) -> (booking_data : (owner : felt, expiry : felt)):
 end
 
-func mint_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    current_timestamp, days, caller, address, hashed_domain, token_id : Uint256, domain
-):
-    alloc_locals
-
-    # Get expiry and price
+func pay_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    current_timestamp, days, caller, domain
+) -> (expiry : felt):
     let expiry = current_timestamp + 86400 * days  # 1 day = 86400s
     let (pricing_contract) = _pricing_contract.read()
     let (erc20, price) = Pricing.compute_buy_price(pricing_contract, domain, days)
-    let data = DomainData(token_id, address, expiry, 1, 0)
+    let (naming_contract) = get_contract_address()
+    IERC20.transferFrom(erc20, caller, naming_contract, price)
 
-    # Register
-    _register_domain(domain, erc20, price, data, caller)
-    starknet_id_update.emit(1, new (domain), token_id, expiry)
-    domain_to_addr_update.emit(1, new (domain), address)
-    let (contract) = starknetid_contract.read()
-    StarknetID.set_verifier_data(contract, token_id, 'name', hashed_domain)
-
-    return ()
+    return (expiry)
 end
 
-func _register_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    domain : felt, erc20 : felt, price : Uint256, data : DomainData, caller : felt
+func mint_domain{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    expiry, target_address, hashed_domain, token_id : Uint256, domain
 ):
-    let (contract) = get_contract_address()
-
-    # Make the user pay
-    IERC20.transferFrom(erc20, caller, contract, price)
-
-    # Write info on starknet.id and write info on storage data
+    alloc_locals
+    let data = DomainData(token_id, target_address, expiry, 1, 0)
     write_domain_data(1, new (domain), data)
-
-    # let (contract_contract_addr) = starknetid_contract.read()
-    # StarknetID.set_verifier_data(contract_contract_addr, token_id, 'name', domain)
+    starknet_id_update.emit(1, new (domain), token_id, expiry)
+    domain_to_addr_update.emit(1, new (domain), target_address)
+    let (contract) = starknetid_contract.read()
+    StarknetID.set_verifier_data(contract, token_id, 'name', hashed_domain)
 
     return ()
 end
