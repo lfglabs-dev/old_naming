@@ -322,7 +322,11 @@ func set_domain_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
         current_domain_data.parent_key,
     )
     _domain_data.write(hashed_domain, new_domain_data)
-    # starknet_id_update.emit(1, new (domain), token_id, current_domain_data.expiry)
+    starknet_id_update.emit(0, new (), current_domain_data.owner, 0)
+    starknet_id_update.emit(domain_len, domain, token_id, current_domain_data.expiry)
+    StarknetID.set_verifier_data(contract, current_domain_data.owner, 'name', 0)
+    StarknetID.set_verifier_data(contract, token_id, 'name', hashed_domain)
+
     return ()
 end
 
