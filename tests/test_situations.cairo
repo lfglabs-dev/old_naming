@@ -23,7 +23,7 @@ func test_simple_buy{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBu
         ids.naming_contract = context.naming_contract
         stop_prank_callable = start_prank(456)
         stop_mock = mock_call(123, "transferFrom", [1])
-        warp(1)
+        warp(1, context.naming_contract)
     %}
 
     let token_id = Uint256(1, 0)
@@ -53,7 +53,7 @@ func test_set_domain_to_address{syscall_ptr : felt*, range_check_ptr, pedersen_p
         ids.naming_contract = context.naming_contract
         stop_prank_callable = start_prank(456)
         stop_mock = mock_call(123, "transferFrom", [1])
-        warp(1)
+        warp(1, context.naming_contract)
     %}
 
     let token_id = Uint256(1, 0)
@@ -86,7 +86,7 @@ func test_set_address_to_domain{syscall_ptr : felt*, range_check_ptr, pedersen_p
         ids.naming_contract = context.naming_contract
         stop_prank_callable = start_prank(456)
         stop_mock = mock_call(123, "transferFrom", [1])
-        warp(1)
+        warp(1, context.naming_contract)
     %}
 
     let token_id = Uint256(1, 0)
@@ -121,7 +121,7 @@ func test_transfer_domain{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : H
         ids.naming_contract = context.naming_contract
         stop_prank_callable = start_prank(456)
         stop_mock = mock_call(123, "transferFrom", [1])
-        warp(1)
+        warp(1, context.naming_contract)
     %}
 
     let token_id = Uint256(1, 0)
@@ -154,7 +154,7 @@ func test_transfer_subdomain{syscall_ptr : felt*, range_check_ptr, pedersen_ptr 
         ids.naming_contract = context.naming_contract
         stop_prank_callable = start_prank(456)
         stop_mock = mock_call(123, "transferFrom", [1])
-        warp(1)
+        warp(1, context.naming_contract)
     %}
 
     let token_id = Uint256(1, 0)
