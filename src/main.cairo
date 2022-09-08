@@ -21,6 +21,7 @@ from src.storage import (
     _pricing_contract,
 )
 from src.interface.starknetid import StarknetID
+from src.premint import distribute_domains
 from src.interface.pricing import Pricing
 from src.registration import (
     starknetid_contract,
@@ -42,6 +43,7 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     starknetid_contract.write(starknetid_contract_addr)
     _pricing_contract.write(pricing_contract_addr)
     _admin_address.write(admin)
+    distribute_domains()
     return ()
 end
 
