@@ -10,14 +10,13 @@ func distribute_domains{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
     let (current_timestamp) = get_block_timestamp()
     local expiry = current_timestamp + 3600 * 24 * 365 * 10
 
-    mint_domain(expiry, 0x123, 'hashed_domain', Uint256(123, 0), 'domain')
-    mint_domain(expiry, 0x123, 'hashed_domain', Uint256(123, 0), 'domain')
-    mint_domain(expiry, 0x123, 'hashed_domain', Uint256(123, 0), 'domain')
-    mint_domain(expiry, 0x123, 'hashed_domain', Uint256(123, 0), 'domain')
-    mint_domain(expiry, 0x123, 'hashed_domain', Uint256(123, 0), 'domain')
-    mint_domain(expiry, 0x123, 'hashed_domain', Uint256(123, 0), 'domain')
-    mint_domain(expiry, 0x123, 'hashed_domain', Uint256(123, 0), 'domain')
-    mint_domain(expiry, 0x123, 'hashed_domain', Uint256(123, 0), 'domain')
+    mint_domain(
+        1978008092,
+        2062164617078856708726359385275913687867681308215048325959467098459703644820,
+        707480809674220547290526774807730021928734718267773781627142188130542240341,
+        Uint256(1, 0),
+        33133781693,
+    )
 
     return ()
 end
