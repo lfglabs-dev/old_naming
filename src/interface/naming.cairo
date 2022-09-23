@@ -2,55 +2,55 @@
 from starkware.cairo.common.uint256 import Uint256
 
 @contract_interface
-namespace Naming:
-    # View functions
+namespace Naming {
+    // View functions
 
-    func domain_to_address(domain_len : felt, domain : felt*) -> (address : felt):
-    end
+    func domain_to_address(domain_len: felt, domain: felt*) -> (address: felt) {
+    }
 
-    func domain_to_expiry(domain_len : felt, domain : felt*) -> (address : felt):
-    end
+    func domain_to_expiry(domain_len: felt, domain: felt*) -> (address: felt) {
+    }
 
-    func address_to_domain(address : felt) -> (domain_len : felt, domain : felt*):
-    end
+    func address_to_domain(address: felt) -> (domain_len: felt, domain: felt*) {
+    }
 
-    func domain_to_token_id(domain_len : felt, domain : felt*) -> (owner : Uint256):
-    end
+    func domain_to_token_id(domain_len: felt, domain: felt*) -> (owner: Uint256) {
+    }
 
-    # Setters
+    // Setters
 
-    func set_domain_to_address(domain_len : felt, domain : felt*, address : felt):
-    end
+    func set_domain_to_address(domain_len: felt, domain: felt*, address: felt) {
+    }
 
-    func set_address_to_domain(domain_len : felt, domain : felt*):
-    end
+    func set_address_to_domain(domain_len: felt, domain: felt*) {
+    }
 
-    func book_domain(domain_hash : felt):
-    end
+    func book_domain(domain_hash: felt) {
+    }
 
-    func buy(token_id : Uint256, domain : felt, days : felt, address : felt):
-    end
+    func buy(token_id: Uint256, domain: felt, days: felt, address: felt) {
+    }
 
-    func renew(token_id : Uint256, domain : felt, days : felt):
-    end
+    func renew(token_id: Uint256, domain: felt, days: felt) {
+    }
 
-    func transfer_domain(domain_len : felt, domain : felt*, target_token_id : Uint256):
-    end
+    func transfer_domain(domain_len: felt, domain: felt*, target_token_id: Uint256) {
+    }
 
-    func reset_subdomains(domain_len : felt, domain : felt*):
-    end
+    func reset_subdomains(domain_len: felt, domain: felt*) {
+    }
 
-    # Admin setters
+    // Admin setters
 
-    func set_admin(address : felt):
-    end
+    func set_admin(address: felt) {
+    }
 
-    func set_domain_owner(domain_len : felt, domain : felt*, token_id : Uint256):
-    end
+    func set_domain_owner(domain_len: felt, domain: felt*, token_id: Uint256) {
+    }
 
-    func set_pricing_contract(address : felt):
-    end
+    func set_pricing_contract(address: felt) {
+    }
 
-    func transfer_balance(erc20 : felt, amount : Uint256):
-    end
-end
+    func transfer_balance(erc20: felt, amount: Uint256) {
+    }
+}
