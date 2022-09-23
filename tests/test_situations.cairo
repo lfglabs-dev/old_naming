@@ -7,7 +7,7 @@ from src.interface.naming import Naming
 @external
 func __setup__() {
     %{
-        context.starknet_id_contract = deploy_contract("./lib/starknet_id/src/StarknetId.cairo").contract_address
+        context.starknet_id_contract = deploy_contract("./lib/starknetid/src/StarknetId.cairo").contract_address
         context.pricing_contract = deploy_contract("./src/pricing/main.cairo", [123]).contract_address
         context.naming_contract = deploy_contract("./src/main.cairo", [context.starknet_id_contract, context.pricing_contract, 456]).contract_address
     %}
