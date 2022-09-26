@@ -7,7 +7,7 @@ from src.storage import write_domain_data, write_address_to_domain, DomainData
 @external
 func test_assert_is_owner{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {
     let owner = Uint256(123, 0);
-    let domain_data = DomainData(owner, 0, 456, 0, 0);
+    let domain_data = DomainData(owner, 0, 0, 456, 0, 0);
     write_domain_data(1, new ('aloha'), domain_data);
 
     let starknetid_address = 0x0123456;
@@ -31,7 +31,7 @@ func test_assert_is_owner{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: Has
 func test_assert_control_domain{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {
     let owner = Uint256(123, 0);
     let expiry = 3;
-    let domain_data = DomainData(owner, 0, expiry, 0, 0);
+    let domain_data = DomainData(owner, 0, 0, expiry, 0, 0);
     write_domain_data(1, new ('aloha'), domain_data);
     let starknetid_address = 0x0123456;
 
@@ -46,7 +46,7 @@ func test_assert_control_domain{syscall_ptr: felt*, range_check_ptr, pedersen_pt
     assert_control_domain(1, new ('aloha'), 789);
 
     let expiry2 = 1;
-    let domain_data2 = DomainData(owner, 0, expiry2, 0, 0);
+    let domain_data2 = DomainData(owner, 0, 0, expiry2, 0, 0);
     write_domain_data(1, new ('ntm'), domain_data2);
 
     // # Should not pass because expiry < current_timestamp

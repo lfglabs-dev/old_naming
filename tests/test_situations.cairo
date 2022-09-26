@@ -31,7 +31,7 @@ func test_simple_buy{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuil
     // th0rgal encoded
     let th0rgal_string = 28235132438;
 
-    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 456);
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456);
     let (addr) = Naming.domain_to_address(naming_contract, 1, new (th0rgal_string));
     assert addr = 456;
     %{
@@ -60,7 +60,7 @@ func test_set_domain_to_address{syscall_ptr: felt*, range_check_ptr, pedersen_pt
     // th0rgal encoded
     let th0rgal_string = 28235132438;
 
-    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 456);
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456);
     Naming.set_domain_to_address(naming_contract, 1, new (th0rgal_string), 789);
 
     let (addr) = Naming.domain_to_address(naming_contract, 1, new (th0rgal_string));
@@ -92,7 +92,7 @@ func test_set_address_to_domain{syscall_ptr: felt*, range_check_ptr, pedersen_pt
     // th0rgal encoded
     let th0rgal_string = 28235132438;
 
-    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 456);
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456);
     // %{
     //    stop_prank_callable()
     //    stop_prank_callable = start_prank(456)
@@ -131,7 +131,7 @@ func test_transfer_domain{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: Has
     // th0rgal encoded
     let th0rgal_string = 28235132438;
 
-    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 456);
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456);
     Naming.transfer_domain(naming_contract, 1, new (th0rgal_string), token_id2);
 
     %{
@@ -164,7 +164,7 @@ func test_transfer_subdomain{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: 
     // th0rgal encoded
     let th0rgal_string = 28235132438;
 
-    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 456);
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456);
     Naming.transfer_domain(naming_contract, 2, new (th0rgal_string, th0rgal_string), token_id2);
 
     %{ expect_revert(error_message="Target token_id already has a domain") %}

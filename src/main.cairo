@@ -23,10 +23,12 @@ from src.storage import (
 from src.interface.starknetid import StarknetID
 from src.premint import distribute_domains
 from src.interface.pricing import Pricing
+from src.interface.resolver import Resolver
 from src.registration import (
     starknetid_contract,
     assert_control_domain,
     domain_to_addr_update,
+    domain_to_resolver_update,
     addr_to_domain_update,
     starknet_id_update,
     reset_subdomains_update,
@@ -34,6 +36,7 @@ from src.registration import (
     pay_domain,
     mint_domain,
 )
+from src.resolver import domain_to_resolver
 from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 
 @constructor
@@ -53,12 +56,20 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 func domain_to_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     domain_len: felt, domain: felt*
 ) -> (address: felt) {
-    let (hashed_domain) = hash_domain(domain_len, domain);
-    let (domain_data) = _domain_data.read(hashed_domain);
-    if (domain_data.address == FALSE) {
-        return (0,);
+    alloc_locals;
+    let (resolver: felt, rest_len: felt, rest: felt*) = domain_to_resolver(domain_len, domain, 1);
+
+    if (resolver == 0) {
+        let (hashed_domain) = hash_domain(domain_len, domain);
+        let (domain_data) = _domain_data.read(hashed_domain);
+        if (domain_data.address == FALSE) {
+            return (address=0,);
+        } else {
+            return (domain_data.address,);
+        }
     } else {
-        return (domain_data.address,);
+        let (address) = Resolver.domain_to_address(resolver, rest_len, rest);
+        return (address=address);
     }
 }
 
@@ -115,10 +126,37 @@ func set_domain_to_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
     let (hashed_domain) = hash_domain(domain_len, domain);
     let (domain_data) = _domain_data.read(hashed_domain);
     let new_data: DomainData = DomainData(
-        domain_data.owner, address, domain_data.expiry, domain_data.key, domain_data.parent_key
+        domain_data.owner,
+        domain_data.resolver,
+        address,
+        domain_data.expiry,
+        domain_data.key,
+        domain_data.parent_key,
     );
     write_domain_data(domain_len, domain, new_data);
     domain_to_addr_update.emit(domain_len, domain, address);
+    return ();
+}
+
+@external
+func set_domain_to_resolver{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    domain_len: felt, domain: felt*, resolver: felt
+) {
+    alloc_locals;
+    let (caller) = get_caller_address();
+    assert_control_domain(domain_len, domain, caller);
+    let (hashed_domain) = hash_domain(domain_len, domain);
+    let (domain_data) = _domain_data.read(hashed_domain);
+    let new_data: DomainData = DomainData(
+        domain_data.owner,
+        resolver,
+        domain_data.address,
+        domain_data.expiry,
+        domain_data.key,
+        domain_data.parent_key,
+    );
+    write_domain_data(domain_len, domain, new_data);
+    domain_to_resolver_update.emit(domain_len, domain, resolver);
     return ();
 }
 
@@ -148,7 +186,7 @@ func book_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 
 @external
 func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    token_id: Uint256, domain: felt, days: felt, address: felt
+    token_id: Uint256, domain: felt, days: felt, resolver: felt, address: felt
 ) {
     alloc_locals;
 
@@ -181,7 +219,7 @@ func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     }
 
     let (expiry) = pay_domain(current_timestamp, days, caller, domain);
-    mint_domain(expiry, address, hashed_domain, token_id, domain);
+    mint_domain(expiry, resolver, address, hashed_domain, token_id, domain);
     return ();
 }
 
@@ -202,7 +240,9 @@ func renew{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     let expiry = domain_data.expiry + 86400 * days;  // 1 day = 86400s
     let (pricing_contract) = _pricing_contract.read();
     let (erc20, price) = Pricing.compute_buy_price(pricing_contract, domain, days);
-    let data = DomainData(domain_data.owner, domain_data.address, expiry, domain_data.key, 0);
+    let data = DomainData(
+        domain_data.owner, domain_data.resolver, domain_data.address, expiry, domain_data.key, 0
+    );
 
     // Register
     let (caller) = get_caller_address();
@@ -243,6 +283,7 @@ func transfer_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
         let (next_domain_data) = _domain_data.read(hashed_parent_domain);
         let new_domain_data = DomainData(
             target_token_id,
+            current_domain_data.resolver,
             current_domain_data.address,
             current_domain_data.expiry,
             current_domain_data.key,
@@ -257,6 +298,7 @@ func transfer_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
     } else {
         let new_domain_data = DomainData(
             target_token_id,
+            current_domain_data.resolver,
             current_domain_data.address,
             current_domain_data.expiry,
             current_domain_data.key,
@@ -284,6 +326,7 @@ func reset_subdomains{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
     let (current_domain_data) = _domain_data.read(hashed_domain);
     let new_domain_data = DomainData(
         current_domain_data.owner,
+        current_domain_data.resolver,
         current_domain_data.address,
         current_domain_data.expiry,
         current_domain_data.key + 1,
@@ -326,6 +369,7 @@ func set_domain_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
     let low = token_id.low;
     let new_domain_data = DomainData(
         token_id,
+        current_domain_data.resolver,
         current_domain_data.address,
         current_domain_data.expiry,
         current_domain_data.key,

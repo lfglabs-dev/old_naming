@@ -7,8 +7,9 @@ from starkware.cairo.common.uint256 import Uint256
 
 struct DomainData {
     owner: Uint256,  // a starknet.id
+    resolver: felt,
     address: felt,  // a wallet address
-    expiry: felt,  // expiration date
+    expiry: felt,  // expiration dates
     key: felt,  // a uniq id, updated on transfer
     parent_key: felt,  // key of parent domain
 }

@@ -21,6 +21,10 @@ func domain_to_addr_update(domain_len: felt, domain: felt*, address: felt) {
 }
 
 @event
+func domain_to_resolver_update(domain_len: felt, domain: felt*, resolver: felt) {
+}
+
+@event
 func addr_to_domain_update(address: felt, domain_len: felt, domain: felt*) {
 }
 
@@ -53,10 +57,10 @@ func pay_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}
 }
 
 func mint_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    expiry, target_address, hashed_domain, token_id: Uint256, domain
+    expiry, resolver, target_address, hashed_domain, token_id: Uint256, domain
 ) {
     alloc_locals;
-    let data = DomainData(token_id, target_address, expiry, 1, 0);
+    let data = DomainData(token_id, resolver, target_address, expiry, 1, 0);
     write_domain_data(1, new (domain), data);
     starknet_id_update.emit(1, new (domain), token_id, expiry);
     domain_to_addr_update.emit(1, new (domain), target_address);
