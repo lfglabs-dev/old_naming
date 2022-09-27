@@ -35,7 +35,7 @@ from src.registration import (
     booked_domain,
     pay_domain,
     mint_domain,
-)
+) 
 from src.resolver import domain_to_resolver
 from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 

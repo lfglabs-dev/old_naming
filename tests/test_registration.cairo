@@ -37,7 +37,7 @@ func test_assert_control_domain{syscall_ptr: felt*, range_check_ptr, pedersen_pt
 
     starknetid_contract.write(starknetid_address);
 
-    %{
+    %{ 
         stop_mock = mock_call(ids.starknetid_address, "ownerOf", [789])
         warp(2)
     %}

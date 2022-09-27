@@ -6,6 +6,7 @@ from src.main import (
     set_admin,
     set_pricing_contract,
     set_domain_owner,
+    set_domain_to_resolver,
 )
 from src.storage import (
     DomainData,
@@ -130,6 +131,29 @@ func test_set_domain_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
     let (domain_data) = _domain_data.read(hashed);
     assert domain_data.owner = Uint256(8, 0);
     %{ stop_prank_callable() %}
+
+    return ();
+}
+
+@external
+func test_set_domain_to_resolver{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    arguments
+) {
+    %{ stop_prank_callable = start_prank(123) %}
+
+    let owner = Uint256(123, 0);
+    let expiry = 3;
+    let domain_data = DomainData(owner, 0, 0, expiry, 0, 0);
+    write_domain_data(1, new ('aloha'), domain_data);
+    let starknetid_address = 0x0123456;
+    starknetid_contract.write(starknetid_address);
+ 
+    %{ stop_mock = mock_call(ids.starknetid_address, "ownerOf", [123]) %}
+
+    set_domain_to_resolver(1, new ('aloha'), 456);
+    let (hashed) = hash_domain(1, new ('aloha'));
+    let (domain_data) = _domain_data.read(hashed);
+    assert domain_data.resolver = 456;
 
     return ();
 }
