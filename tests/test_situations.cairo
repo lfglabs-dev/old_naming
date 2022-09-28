@@ -10,6 +10,7 @@ func __setup__() {
         context.starknet_id_contract = deploy_contract("./lib/starknetid/src/StarknetId.cairo").contract_address
         context.pricing_contract = deploy_contract("./src/pricing/main.cairo", [123]).contract_address
         context.naming_contract = deploy_contract("./src/main.cairo", [context.starknet_id_contract, context.pricing_contract, 456]).contract_address
+        context.resolver_contract = deploy_contract("./tests/example_resolver.cairo", []).contract_address
     %}
     return ();
 }
@@ -168,6 +169,44 @@ func test_transfer_subdomain{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: 
 
     %{ expect_revert(error_message="Target token_id already has a domain") %}
     Naming.transfer_domain(naming_contract, 1, new (th0rgal_string), token_id2);
+
+    %{
+        stop_prank_callable()
+        stop_mock()
+    %}
+
+    return ();
+}
+
+@external
+func test_resolver{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {
+    alloc_locals;
+    local starknet_id_contract;
+    local naming_contract;
+    local resolver_contract;
+    %{
+        ids.starknet_id_contract = context.starknet_id_contract
+        ids.naming_contract = context.naming_contract
+        ids.resolver_contract = context.resolver_contract
+        stop_prank_callable = start_prank(456)
+        stop_mock = mock_call(123, "transferFrom", [1])
+        warp(1, context.naming_contract)
+    %}
+
+    let token_id = Uint256(1, 0);
+    StarknetID.mint(starknet_id_contract, token_id);
+
+    // th0rgal encoded
+    let th0rgal_string = 28235132438;
+
+    Naming.buy(
+        naming_contract, token_id, th0rgal_string, days=365, resolver=resolver_contract, address=456
+    );
+    let (addr) = Naming.domain_to_address(naming_contract, 1, new (th0rgal_string));
+    assert addr = 456;
+
+    let (addr) = Naming.domain_to_address(naming_contract, 2, new (th0rgal_string, 'anything'));
+    assert addr = 789;
 
     %{
         stop_prank_callable()
