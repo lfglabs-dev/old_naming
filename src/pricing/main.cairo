@@ -2,6 +2,7 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.math import assert_le
+from starkware.cairo.common.math import unsigned_div_rem
 
 @storage_var
 func erc20() -> (erc20_address: felt) {
@@ -30,13 +31,11 @@ func compute_buy_price{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 ) -> (erc20_address: felt, price: Uint256) {
     // you can't purchase a domain for longer than 25 years
     assert_le(days, 9125);
-    let (erc20_address) = erc20.read();
-    
     // Calculate price depending on number of characters
-    let (number_of_character) = getNumberOfCharacter(domain);
+    let number_of_character = get_amount_of_chars(domain);
     let (price_per_day_eth) = _price_per_day.read(number_of_character);
     let price = Uint256(days * price_per_day_eth, 0);
-
+    let (erc20_address) = erc20.read();
     return (erc20_address, price);
 }
 
@@ -46,20 +45,31 @@ func compute_renew_price{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_c
 ) -> (erc20_address: felt, price: Uint256) {
     // you can't renew ase a domain for longer than 25 years
     assert_le(days, 9125);
-    let (erc20_address) = erc20.read();
-    
+
     // Calculate price depending on number of characters
-    let (number_of_character) = getNumberOfCharacter(domain);
+    let number_of_character = get_amount_of_chars(domain);
     let (price_per_day_eth) = _price_per_day.read(number_of_character);
     let price = Uint256(days * price_per_day_eth, 0);
-    
+    let (erc20_address) = erc20.read();
     return (erc20_address, price);
 }
 
-func getNumberOfCharacter{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    domain
-) -> (number_of_character: felt) {
+const simple_alphabet_size = 38;
+const complex_alphabet_size = 2;
 
-    
-    return ();
+func get_amount_of_chars{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    domain
+) -> felt {
+    if (domain == 0) {
+        return (0);
+    }
+    let (p, q) = unsigned_div_rem(domain, simple_alphabet_size);
+    if (p == 37) {
+        let (shifted_p, _) = unsigned_div_rem(p, complex_alphabet_size);
+        let next = get_amount_of_chars(shifted_p);
+        return 1 + next;
+    } else {
+        let next = get_amount_of_chars(p);
+        return 1 + next;
+    }
 }
