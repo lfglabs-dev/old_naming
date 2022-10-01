@@ -14,7 +14,7 @@ namespace Naming {
     func address_to_domain(address: felt) -> (domain_len: felt, domain: felt*) {
     }
 
-    func domain_to_token_id(domain_len: felt, domain: felt*) -> (owner: Uint256) {
+    func domain_to_token_id(domain_len: felt, domain: felt*) -> (owner: felt) {
     }
 
     // Setters
@@ -28,13 +28,13 @@ namespace Naming {
     func book_domain(domain_hash: felt) {
     }
 
-    func buy(token_id: Uint256, domain: felt, days: felt, resolver: felt, address: felt) {
+    func buy(token_id: felt, domain: felt, days: felt, resolver: felt, address: felt) {
     }
 
-    func renew(token_id: Uint256, domain: felt, days: felt) {
+    func renew(token_id: felt, domain: felt, days: felt) {
     }
 
-    func transfer_domain(domain_len: felt, domain: felt*, target_token_id: Uint256) {
+    func transfer_domain(domain_len: felt, domain: felt*, target_token_id: felt) {
     }
 
     func reset_subdomains(domain_len: felt, domain: felt*) {
@@ -45,7 +45,7 @@ namespace Naming {
     func set_admin(address: felt) {
     }
 
-    func set_domain_owner(domain_len: felt, domain: felt*, token_id: Uint256) {
+    func set_domain_owner(domain_len: felt, domain: felt*, token_id: felt) {
     }
 
     func set_pricing_contract(address: felt) {

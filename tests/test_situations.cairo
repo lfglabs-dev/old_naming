@@ -1,6 +1,5 @@
 %lang starknet
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.uint256 import Uint256
 from src.interface.starknetid import StarknetID
 from src.interface.naming import Naming
 
@@ -27,7 +26,7 @@ func test_simple_buy{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuil
         warp(1, context.naming_contract)
     %}
 
-    let token_id = Uint256(1, 0);
+    let token_id = 1;
     StarknetID.mint(starknet_id_contract, token_id);
     // th0rgal encoded
     let th0rgal_string = 28235132438;
@@ -56,7 +55,7 @@ func test_set_domain_to_address{syscall_ptr: felt*, range_check_ptr, pedersen_pt
         warp(1, context.naming_contract)
     %}
 
-    let token_id = Uint256(1, 0);
+    let token_id = 1;
     StarknetID.mint(starknet_id_contract, token_id);
     // th0rgal encoded
     let th0rgal_string = 28235132438;
@@ -88,7 +87,7 @@ func test_set_address_to_domain{syscall_ptr: felt*, range_check_ptr, pedersen_pt
         warp(1, context.naming_contract)
     %}
 
-    let token_id = Uint256(1, 0);
+    let token_id = 1;
     StarknetID.mint(starknet_id_contract, token_id);
     // th0rgal encoded
     let th0rgal_string = 28235132438;
@@ -122,10 +121,10 @@ func test_transfer_domain{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: Has
         warp(1, context.naming_contract)
     %}
 
-    let token_id = Uint256(1, 0);
+    let token_id = 1;
     StarknetID.mint(starknet_id_contract, token_id);
 
-    let token_id2 = Uint256(2, 0);
+    let token_id2 = 2;
     StarknetID.mint(starknet_id_contract, token_id2);
 
     // th0rgal encoded
@@ -155,10 +154,10 @@ func test_transfer_subdomain{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: 
         warp(1, context.naming_contract)
     %}
 
-    let token_id = Uint256(1, 0);
+    let token_id = 1;
     StarknetID.mint(starknet_id_contract, token_id);
 
-    let token_id2 = Uint256(2, 0);
+    let token_id2 = 2;
     StarknetID.mint(starknet_id_contract, token_id2);
 
     // th0rgal encoded
@@ -193,7 +192,7 @@ func test_resolver{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuilti
         warp(1, context.naming_contract)
     %}
 
-    let token_id = Uint256(1, 0);
+    let token_id = 1;
     StarknetID.mint(starknet_id_contract, token_id);
 
     // th0rgal encoded

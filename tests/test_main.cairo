@@ -20,7 +20,6 @@ from src.storage import (
 from src.registration import starknetid_contract
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.uint256 import Uint256
 
 @external
 func test_hash_domain{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {
@@ -41,7 +40,7 @@ func test_write_domain_data{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, rang
     arguments
 ) {
     // todo: write domain data on naming_contract and starknetid
-    let tokenid = Uint256(123, 0);
+    let tokenid = 123;
     let data = DomainData(tokenid, 0, 456, 1, 1, 0);
     write_domain_data(4, new ('this', 'is', 'a', 'domain'), data);
 
@@ -72,7 +71,7 @@ func test_write_address_to_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*
 
 @external
 func test_buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(arguments) {
-    // Mock starknetID.ownerOf
+    // Mock starknetID.owner_of
 
     // Test with a not registered domain
 
@@ -126,10 +125,10 @@ func test_set_domain_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
 
     // test case : admin is caller
     _admin_address.write(123);
-    set_domain_owner(1, new (123456789), Uint256(8, 0));
+    set_domain_owner(1, new (123456789), 8);
     let (hashed) = hash_domain(1, new (123456789));
     let (domain_data) = _domain_data.read(hashed);
-    assert domain_data.owner = Uint256(8, 0);
+    assert domain_data.owner = 8;
     %{ stop_prank_callable() %}
 
     return ();
@@ -141,14 +140,14 @@ func test_set_domain_to_resolver{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*,
 ) {
     %{ stop_prank_callable = start_prank(123) %}
 
-    let owner = Uint256(123, 0);
+    let owner = 123;
     let expiry = 3;
     let domain_data = DomainData(owner, 0, 0, expiry, 0, 0);
     write_domain_data(1, new ('aloha'), domain_data);
     let starknetid_address = 0x0123456;
     starknetid_contract.write(starknetid_address);
  
-    %{ stop_mock = mock_call(ids.starknetid_address, "ownerOf", [123]) %}
+    %{ stop_mock = mock_call(ids.starknetid_address, "owner_of", [123]) %}
 
     set_domain_to_resolver(1, new ('aloha'), 456);
     let (hashed) = hash_domain(1, new ('aloha'));

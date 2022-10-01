@@ -1,10 +1,10 @@
 %lang starknet
+from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.math import assert_nn, assert_le
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.hash import hash2
 from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.uint256 import Uint256
 from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp
 from starkware.cairo.common.math_cmp import is_le, is_not_zero
 from starkware.starknet.common.syscalls import get_contract_address
@@ -35,7 +35,7 @@ from src.registration import (
     booked_domain,
     pay_domain,
     mint_domain,
-) 
+)
 from src.resolver import domain_to_resolver
 from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 
@@ -99,15 +99,14 @@ func address_to_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 @view
 func domain_to_token_id{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     domain_len: felt, domain: felt*
-) -> (owner: Uint256) {
+) -> (owner: felt) {
     let (hashed_domain) = hash_domain(domain_len, domain);
     let (domain_data) = _domain_data.read(hashed_domain);
     let owner = domain_data.owner;
 
-    if (owner.low == 0 and owner.high == 0) {
+    if (owner == 0) {
         if (domain_len == 0) {
-            let false = Uint256(0, 0);
-            return (false,);
+            return (FALSE,);
         }
         return domain_to_token_id(domain_len - 1, domain + 1);
     }
@@ -186,14 +185,14 @@ func book_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 
 @external
 func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    token_id: Uint256, domain: felt, days: felt, resolver: felt, address: felt
+    token_id: felt, domain: felt, days: felt, resolver: felt, address: felt
 ) {
     alloc_locals;
 
     // Verify that the starknet.id is owned by the caller
     let (caller) = get_caller_address();
     let (contract_addr) = starknetid_contract.read();
-    let (starknet_id_owner) = StarknetID.ownerOf(contract_addr, token_id);
+    let (starknet_id_owner) = StarknetID.owner_of(contract_addr, token_id);
     assert caller = starknet_id_owner;
 
     // Verify that the domain is not registered already or expired
@@ -210,11 +209,7 @@ func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     let (domain_data) = _domain_data.read(hashed_domain);
     let is_expired = is_le(domain_data.expiry, current_timestamp);
 
-    if (domain_data.owner.low != 0) {
-        assert is_expired = TRUE;
-    }
-
-    if (domain_data.owner.high != 0) {
+    if (domain_data.owner != 0) {
         assert is_expired = TRUE;
     }
 
@@ -260,7 +255,7 @@ func renew{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
 
 @external
 func transfer_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    domain_len: felt, domain: felt*, target_token_id: Uint256
+    domain_len: felt, domain: felt*, target_token_id: felt
 ) {
     alloc_locals;
     let (caller) = get_caller_address();
@@ -355,7 +350,7 @@ func set_admin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
 
 @external
 func set_domain_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    domain_len: felt, domain: felt*, token_id: Uint256
+    domain_len: felt, domain: felt*, token_id: felt
 ) {
     alloc_locals;
     // Verify that caller is admin
@@ -366,7 +361,6 @@ func set_domain_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
     // Write domain owner
     let (hashed_domain) = hash_domain(domain_len, domain);
     let (current_domain_data) = _domain_data.read(hashed_domain);
-    let low = token_id.low;
     let new_domain_data = DomainData(
         token_id,
         current_domain_data.resolver,

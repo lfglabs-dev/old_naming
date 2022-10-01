@@ -1,18 +1,16 @@
 %lang starknet
 
-from starkware.cairo.common.uint256 import Uint256
-
 @contract_interface
 namespace StarknetID {
-    func mint(token_id: Uint256) {
+    func mint(token_id) {
     }
 
-    func ownerOf(token_id: Uint256) -> (owner: felt) {
+    func owner_of(token_id) -> (owner: felt) {
     }
 
-    func get_verifier_data(token_id: Uint256, field: felt, verifier: felt) -> (data: felt) {
+    func get_verifier_data(token_id, field, verifier) -> (data: felt) {
     }
 
-    func set_verifier_data(token_id: Uint256, field: felt, data: felt) {
+    func set_verifier_data(token_id, field, data) {
     }
 }

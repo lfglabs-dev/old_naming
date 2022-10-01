@@ -1,5 +1,4 @@
 %lang starknet
-from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.starknet.common.syscalls import get_contract_address
 from src.storage import (
@@ -29,7 +28,7 @@ func addr_to_domain_update(address: felt, domain_len: felt, domain: felt*) {
 }
 
 @event
-func starknet_id_update(domain_len: felt, domain: felt*, owner: Uint256, expiry: felt) {
+func starknet_id_update(domain_len: felt, domain: felt*, owner: felt, expiry: felt) {
 }
 
 @event
@@ -57,7 +56,7 @@ func pay_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}
 }
 
 func mint_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    expiry, resolver, target_address, hashed_domain, token_id: Uint256, domain
+    expiry, resolver, target_address, hashed_domain, token_id, domain
 ) {
     alloc_locals;
     let data = DomainData(token_id, resolver, target_address, expiry, 1, 0);
@@ -93,12 +92,12 @@ func assert_control_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
 }
 
 func fetch_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    contract_addr, starknet_id: Uint256
+    contract_addr, starknet_id
 ) -> (owner: felt) {
-    if (starknet_id.low == 0 and starknet_id.high == 0) {
+    if (starknet_id == 0) {
         return (0,);
     }
-    let (starknet_id_owner) = StarknetID.ownerOf(contract_addr, starknet_id);
+    let (starknet_id_owner) = StarknetID.owner_of(contract_addr, starknet_id);
     return (starknet_id_owner,);
 }
 

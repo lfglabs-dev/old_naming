@@ -3,7 +3,6 @@ from src.main import domain_to_address, address_to_domain, domain_to_token_id
 from src.storage import DomainData, _address_to_domain, _domain_data
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.uint256 import Uint256
 
 @external
 func test_address_to_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -27,7 +26,7 @@ func test_domain_to_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, rang
     alloc_locals;
 
     let (domain1: felt*) = alloc();
-    let tokenid = Uint256('starkware starknet.id', 0);
+    let tokenid = 'starkware starknet.id';
     let domainData_instance = DomainData(owner=tokenid, 0, address='0x..', 1, 1, 0);
     _domain_data.write(
         2140142446875703710710518347945668701142580220800197817593363984239628985951,
@@ -47,7 +46,7 @@ func test_domain_to_token_id{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ran
     arguments
 ) {
     alloc_locals;
-    let tokenid = Uint256(123, 0);
+    let tokenid = 123;
     let domainData_instance = DomainData(owner=tokenid, 0, address='0x..', 1, 1, 0);
     _domain_data.write(
         2140142446875703710710518347945668701142580220800197817593363984239628985951,
