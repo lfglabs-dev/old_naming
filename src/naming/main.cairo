@@ -9,7 +9,7 @@ from starkware.starknet.common.syscalls import get_caller_address, get_block_tim
 from starkware.cairo.common.math_cmp import is_le, is_not_zero
 from starkware.starknet.common.syscalls import get_contract_address
 
-from src.storage import (
+from src.naming.utils import (
     _domain_data,
     hash_domain,
     _address_to_domain_util,
@@ -21,10 +21,10 @@ from src.storage import (
     _pricing_contract,
 )
 from src.interface.starknetid import StarknetID
-from src.premint import distribute_domains
+from src.naming.premint import distribute_domains
 from src.interface.pricing import Pricing
 from src.interface.resolver import Resolver
-from src.registration import (
+from src.naming.registration import (
     starknetid_contract,
     assert_control_domain,
     domain_to_addr_update,
@@ -36,7 +36,7 @@ from src.registration import (
     pay_domain,
     mint_domain,
 )
-from src.resolver import domain_to_resolver
+from src.naming.utils import domain_to_resolver
 from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 
 @constructor

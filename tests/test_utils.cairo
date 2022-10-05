@@ -1,6 +1,6 @@
 %lang starknet
-from src.main import domain_to_address, address_to_domain, domain_to_token_id
-from src.storage import DomainData, _address_to_domain, _domain_data
+from src.naming.main import domain_to_address, address_to_domain, domain_to_token_id
+from src.naming.utils import DomainData, _address_to_domain, _domain_data
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.alloc import alloc
 

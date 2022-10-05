@@ -1,7 +1,7 @@
 %lang starknet
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.starknet.common.syscalls import get_contract_address
-from src.storage import (
+from src.naming.utils import (
     DomainData,
     write_domain_data,
     write_address_to_domain,

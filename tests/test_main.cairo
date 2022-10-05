@@ -1,5 +1,5 @@
 %lang starknet
-from src.main import (
+from src.naming.main import (
     domain_to_address,
     domain_to_expiry,
     address_to_domain,
@@ -8,7 +8,7 @@ from src.main import (
     set_domain_owner,
     set_domain_to_resolver,
 )
-from src.storage import (
+from src.naming.utils import (
     DomainData,
     hash_domain,
     write_domain_data,
@@ -17,7 +17,7 @@ from src.storage import (
     _pricing_contract,
     _domain_data,
 )
-from src.registration import starknetid_contract
+from src.naming.registration import starknetid_contract
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.alloc import alloc
 

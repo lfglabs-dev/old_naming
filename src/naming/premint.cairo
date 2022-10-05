@@ -2,7 +2,7 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.starknet.common.syscalls import get_block_timestamp
 
-from src.registration import mint_domain
+from src.naming.registration import mint_domain
 
 func distribute_domains{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
     alloc_locals;
