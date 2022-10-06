@@ -52,7 +52,7 @@ func test_simple_buy_fails{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: Ha
         stop_prank_callable = start_prank(456)
         stop_mock = mock_call(123, "transferFrom", [1])
         warp(1, context.naming_contract)
-        expect_revert(error_message="Someone else booked this domain")
+        expect_revert(error_message="A domain can't be purchased for more than 25 years")
     %}
 
     let token_id = 1;
