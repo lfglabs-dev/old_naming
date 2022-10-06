@@ -84,7 +84,7 @@ func assert_control_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
     // check expiry of root domain
     let (current_timestamp) = get_block_timestamp();
 
-    with_attr error_message("This domain is expired") {
+    with_attr error_message("This domain has expired") {
         assert_le(current_timestamp, root_domain_data.expiry);
     }
 
@@ -118,14 +118,14 @@ func assert_is_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
     // if domain_len <= 2
 
     if (domain_len == 1) {
-        with_attr error_message("you do not have rights on this domain") {
+        with_attr error_message("You do not have rights on this domain") {
             assert 1 = 0;
         }
         return (-1,);
     }
 
     if (domain_len == 0) {
-        with_attr error_message("you do not have rights on this domain") {
+        with_attr error_message("You do not have rights on this domain") {
             assert 1 = 0;
         }
         return (-1,);
