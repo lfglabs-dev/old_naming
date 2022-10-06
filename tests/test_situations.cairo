@@ -43,6 +43,33 @@ func test_simple_buy{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuil
 }
 
 @external
+func test_simple_buy_fails{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {
+    tempvar starknet_id_contract;
+    tempvar naming_contract;
+    %{
+        ids.starknet_id_contract = context.starknet_id_contract
+        ids.naming_contract = context.naming_contract
+        stop_prank_callable = start_prank(456)
+        stop_mock = mock_call(123, "transferFrom", [1])
+        warp(1, context.naming_contract)
+        expect_revert(error_message="Someone else booked this domain")
+    %}
+
+    let token_id = 1;
+    StarknetID.mint(starknet_id_contract, token_id);
+    // th0rgal encoded
+    let th0rgal_string = 28235132438;
+
+    Naming.buy(naming_contract, token_id, th0rgal_string, 36500, 0, 456);
+    %{
+        stop_prank_callable()
+        stop_mock()
+    %}
+
+    return ();
+}
+
+@external
 func test_booked_buy{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {
     tempvar starknet_id_contract;
     tempvar naming_contract;

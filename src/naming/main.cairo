@@ -1,6 +1,6 @@
 %lang starknet
 from starkware.cairo.common.uint256 import Uint256
-from starkware.cairo.common.math import assert_nn, assert_le
+from starkware.cairo.common.math import assert_nn, assert_le_felt
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.hash import hash2
@@ -33,7 +33,8 @@ from src.naming.registration import (
     starknet_id_update,
     reset_subdomains_update,
     booked_domain,
-    pay_domain,
+    pay_buy_domain,
+    pay_renew_domain,
     mint_domain,
 )
 from src.naming.utils import domain_to_resolver
@@ -177,7 +178,7 @@ func book_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 ) {
     let (current_timestamp) = get_block_timestamp();
     let (booking_data) = booked_domain.read(domain_hash);
-    assert_le(booking_data.expiry, current_timestamp);
+    assert_le_felt(booking_data.expiry, current_timestamp);
     let (caller) = get_caller_address();
     booked_domain.write(domain_hash, (caller, current_timestamp + 3600));
     return ();
@@ -216,7 +217,11 @@ func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         assert is_expired = TRUE;
     }
 
-    let (expiry) = pay_domain(current_timestamp, days, caller, domain);
+    pay_buy_domain(current_timestamp, days, caller, domain);
+    let expiry = current_timestamp + 86400 * days;
+    with_attr error_message("A domain can't be purchased for more than 25 years") {
+        assert_le_felt(expiry, current_timestamp + 86400 * 9125);  // 25*365
+    }
     mint_domain(expiry, resolver, address, hashed_domain, token_id, domain);
     return ();
 }
@@ -236,18 +241,18 @@ func renew{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
 
     // Get expiry and price
     let expiry = domain_data.expiry + 86400 * days;  // 1 day = 86400s
-    let (pricing_contract) = _pricing_contract.read();
-    let (erc20, price) = Pricing.compute_buy_price(pricing_contract, domain, days);
+    with_attr error_message("A domain can't be purchased for more than 25 years") {
+        assert_le_felt(expiry, current_timestamp + 86400 * 9125);  // 25*365
+    }
     let data = DomainData(
         domain_data.owner, domain_data.resolver, domain_data.address, expiry, domain_data.key, 0
     );
 
     // Register
     let (caller) = get_caller_address();
-    let (contract) = get_contract_address();
 
     // Make the user pay
-    IERC20.transferFrom(erc20, caller, contract, price);
+    pay_renew_domain(current_timestamp, days, caller, domain);
 
     // Write info on starknet.id and write info on storage data
     write_domain_data(1, new (domain), data);

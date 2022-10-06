@@ -43,16 +43,24 @@ func starknetid_contract() -> (address: felt) {
 func booked_domain(hashed_domain: felt) -> (booking_data: (owner: felt, expiry: felt)) {
 }
 
-func pay_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+func pay_buy_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     current_timestamp, days, caller, domain
-) -> (expiry: felt) {
-    let expiry = current_timestamp + 86400 * days;  // 1 day = 86400s
+) -> () {
     let (pricing_contract) = _pricing_contract.read();
     let (erc20, price) = Pricing.compute_buy_price(pricing_contract, domain, days);
     let (naming_contract) = get_contract_address();
     IERC20.transferFrom(erc20, caller, naming_contract, price);
+    return ();
+}
 
-    return (expiry,);
+func pay_renew_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    current_timestamp, days, caller, domain
+) -> () {
+    let (pricing_contract) = _pricing_contract.read();
+    let (erc20, price) = Pricing.compute_renew_price(pricing_contract, domain, days);
+    let (naming_contract) = get_contract_address();
+    IERC20.transferFrom(erc20, caller, naming_contract, price);
+    return ();
 }
 
 func mint_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(

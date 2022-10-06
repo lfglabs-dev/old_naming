@@ -36,7 +36,7 @@ func test_assert_control_domain{syscall_ptr: felt*, range_check_ptr, pedersen_pt
 
     starknetid_contract.write(starknetid_address);
 
-    %{ 
+    %{
         stop_mock = mock_call(ids.starknetid_address, "owner_of", [789])
         warp(2)
     %}
@@ -46,11 +46,11 @@ func test_assert_control_domain{syscall_ptr: felt*, range_check_ptr, pedersen_pt
 
     let expiry2 = 1;
     let domain_data2 = DomainData(owner, 0, 0, expiry2, 0, 0);
-    write_domain_data(1, new ('ntm'), domain_data2);
+    write_domain_data(1, new ('toto'), domain_data2);
 
     // # Should not pass because expiry < current_timestamp
-    %{ expect_revert(error_message="This domain is expired") %}
-    assert_control_domain(1, new ('ntm'), 789);
+    %{ expect_revert(error_message="This domain has expired") %}
+    assert_control_domain(1, new ('toto'), 789);
 
     return ();
 }
