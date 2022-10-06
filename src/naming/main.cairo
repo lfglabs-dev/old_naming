@@ -202,8 +202,11 @@ func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     // stop front running/mev
     let (booking_data: (owner: felt, expiry: felt)) = booked_domain.read(hashed_domain);
     let booked = is_le(current_timestamp, booking_data.expiry);
+
     if (booked == TRUE) {
-        assert booking_data.owner = caller;
+        with_attr error_message("Someone else booked this domain") {
+            assert booking_data.owner = caller;
+        }
     }
 
     let (domain_data) = _domain_data.read(hashed_domain);
