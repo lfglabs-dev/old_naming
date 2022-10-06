@@ -16,21 +16,28 @@ func __setup__() {
 func test_buy_price{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {
     tempvar pricing_contract;
     %{ ids.pricing_contract = context.pricing_contract %}
-    let (erc20, price) = Pricing.compute_buy_price(pricing_contract, 'thomas', 365);
-    assert erc20 = 123;
-    assert price.low = 36500;
-    assert price.high = 0;
-    return ();
-}
 
-@external
-func test_renew_price{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {
-    tempvar pricing_contract;
-    %{ ids.pricing_contract = context.pricing_contract %}
-    let (erc20, price) = Pricing.compute_renew_price(pricing_contract, 'thomas', 365);
+    // Test with "ben" / 3 letters and one year
+    let (erc20, price) = Pricing.compute_buy_price(pricing_contract, 18925, 365);
     assert erc20 = 123;
-    assert price.low = 36500;
+    assert price.low = 390000000115000000;
     assert price.high = 0;
+
+    // Test with "chocolate" / 9 letters and one year
+    let (erc20, price) = Pricing.compute_buy_price(pricing_contract, 19565965532212, 365);
+    assert price.low = 6999999999350000;
+    assert price.high = 0;
+
+    // Test with "chocolate" / 9 letters and 5 years
+    let (erc20, price) = Pricing.compute_buy_price(pricing_contract, 19565965532212, 1825);
+    assert price.low = 20999999998050000;
+    assert price.high = 0;
+    
+    // Test with "chocolate" / 9 letters and 3 years
+    let (erc20, price) = Pricing.compute_buy_price(pricing_contract, 19565965532212, 1095);
+    assert price.low = 13999999998700000;
+    assert price.high = 0;
+    
     return ();
 }
 
