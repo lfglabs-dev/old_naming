@@ -38,7 +38,7 @@ to_airdrop = {
 for domain, [token_id, address] in to_airdrop.items():
     encoded_domain = encode(domain)
     hashed_domain = pedersen_hash(encoded_domain, 0)
-    print(f"StarknetID.mint(naming_contract, {token_id});")
+    print(f"StarknetID.mint(starknet_id, {token_id});")
     print(
         f"mint_domain({expiry}, 0, {address}, {hashed_domain}, {token_id}, {encoded_domain});"
     )

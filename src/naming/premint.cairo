@@ -13,7 +13,7 @@ func distribute_domains{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
     let (current_timestamp) = get_block_timestamp();
     local expiry = current_timestamp + 3600 * 24 * 365 * 10;
 
-    StarknetID.mint(naming_contract, 1);
+    StarknetID.mint(starknet_id, 1);
     mint_domain(
         1980423047,
         0,
