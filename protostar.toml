@@ -5,7 +5,7 @@ protostar_version = "0.3.2"
 libs_path = "lib"
 
 ["protostar.contracts"]
-main = ["src/main.cairo"]
+main = ["src/naming/main.cairo"]
 pricing = ["src/pricing/main.cairo"]
 
 ["protostar.shared_command_configs"]
