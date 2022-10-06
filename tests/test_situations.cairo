@@ -473,3 +473,39 @@ func test_resolver{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuilti
 
     return ();
 }
+
+@external
+func test_premint{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {
+    tempvar starknet_id_contract;
+    tempvar naming_contract;
+    %{
+        ids.starknet_id_contract = context.starknet_id_contract
+        ids.naming_contract = context.naming_contract
+        stop_prank_callable = start_prank(456)
+        stop_mock = mock_call(123, "transferFrom", [1])
+        warp(1, context.naming_contract)
+    %}
+
+    Naming.premint(
+        naming_contract,
+        2980446980,
+        1,
+        0x123,
+        1520467356727709481761763983664372423051404589596377879851761672477786267837,
+        193262559525998381,
+    );
+
+    Naming.end_premint(naming_contract);
+
+    %{ expect_revert(error_message="Premint phase ended") %}
+    Naming.premint(
+        naming_contract,
+        2980446980,
+        2,
+        0x1234,
+        2460964344094842021493853224985912260165096286218338421764637463780759083180,
+        199375555272723757,
+    );
+
+    return ();
+}

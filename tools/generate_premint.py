@@ -35,13 +35,12 @@ to_airdrop = {
     "th0rgal": [1, 0x048F24D0D0618FA31813DB91A45D8BE6C50749E5E19EC699092CE29ABE809294]
 }
 
+for i in range(2, 1235):
+    to_airdrop[("number-" + str(i))] = [i, i]
+
 for domain, [token_id, address] in to_airdrop.items():
     encoded_domain = encode(domain)
     hashed_domain = pedersen_hash(encoded_domain, 0)
-    print(f"StarknetID.mint(starknet_id, {token_id});")
     print(
-        f"mint_domain({expiry}, 0, {address}, {hashed_domain}, {token_id}, {encoded_domain});"
-    )
-    print(
-        f"StarknetID.transferFrom(starknet_id, naming_contract, {address}, Uint256({token_id}, 0));"
+        f"premint({expiry}, {token_id}, {address}, {hashed_domain}, {encoded_domain});"
     )

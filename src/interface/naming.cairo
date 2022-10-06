@@ -53,4 +53,10 @@ namespace Naming {
 
     func transfer_balance(erc20: felt, amount: Uint256) {
     }
+
+    func premint(expiry, starknet_id, receiver_address, hashed_domain, domain) {
+    }
+
+    func end_premint() {
+    }
 }

@@ -19,9 +19,9 @@ from src.naming.utils import (
     DomainData,
     _admin_address,
     _pricing_contract,
+    _premint_ended,
 )
 from src.interface.starknetid import StarknetID
-from src.naming.premint import distribute_domains
 from src.interface.pricing import Pricing
 from src.interface.resolver import Resolver
 from src.naming.registration import (
@@ -47,7 +47,6 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     starknetid_contract.write(starknetid_contract_addr);
     _pricing_contract.write(pricing_contract_addr);
     _admin_address.write(admin);
-    distribute_domains();
     return ();
 }
 
@@ -414,5 +413,32 @@ func transfer_balance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
     // Redeem funds
     IERC20.transfer(erc20, caller, amount);
 
+    return ();
+}
+
+@external
+func premint{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    expiry, starknet_id, receiver_address, hashed_domain, domain
+) {
+    let (premint_ended) = _premint_ended.read();
+    with_attr error_message("Premint phase ended") {
+        assert premint_ended = FALSE;
+    }
+
+    let (naming_contract) = get_contract_address();
+    let (starknet_id_contract) = starknetid_contract.read();
+
+    StarknetID.mint(starknet_id_contract, starknet_id);
+    StarknetID.transferFrom(
+        starknet_id_contract, naming_contract, receiver_address, Uint256(starknet_id, 0)
+    );
+    mint_domain(expiry, 0, receiver_address, hashed_domain, starknet_id, domain);
+
+    return ();
+}
+
+@external
+func end_premint{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+    _premint_ended.write(TRUE);
     return ();
 }
