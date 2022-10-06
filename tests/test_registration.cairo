@@ -16,7 +16,7 @@ func test_assert_is_owner{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: Has
     assert_is_owner(1, new ('aloha'), starknetid_address, 789);
 
     %{
-        expect_revert(error_message="you do not have rights on this domain") 
+        expect_revert(error_message="You do not have rights on this domain") 
         stop_mock()
         stop_mock = mock_call(ids.starknetid_address, "owner_of", [123456789])
     %}
