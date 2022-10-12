@@ -3,6 +3,8 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.math import assert_le
 from starkware.cairo.common.math import unsigned_div_rem
+from starkware.cairo.common.bool import TRUE, FALSE
+from starkware.cairo.common.math_cmp import is_le
 
 @storage_var
 func erc20() -> (erc20_address: felt) {
@@ -95,12 +97,16 @@ func get_days_to_pay{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
     days
 ) -> felt {
 
-    if (days == 1095) {
-        return (730);
+    let is_longer_five_years = is_le(1824, days);
+
+    if (is_longer_five_years  == TRUE) {
+        return (days - 730);
     }
 
-    if (days == 1825) {
-        return (1095);
+    let is_longer_three_years = is_le(1094, days);
+
+    if (is_longer_three_years == TRUE) {
+        return (days - 365);
     }
 
     return (days);
