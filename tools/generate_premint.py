@@ -42,5 +42,5 @@ for domain, [token_id, address] in to_airdrop.items():
     encoded_domain = encode(domain)
     hashed_domain = pedersen_hash(encoded_domain, 0)
     print(
-        f"Naming.premint(naming_contract, {expiry}, {token_id}, {address}, {hashed_domain}, {encoded_domain});"
+        f"{{ id: new BN('{token_id}', 10), addr: new BN('{address}', 10), hashed_domain: new BN('{hashed_domain}', 10), domain: new BN('{encoded_domain}', 10) }},"
     )
