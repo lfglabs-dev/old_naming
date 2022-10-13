@@ -11,7 +11,7 @@ func __setup__() {
         context.starknet_id_contract = deploy_contract("./lib/starknetid/src/StarknetId.cairo").contract_address
         context.eth_contract = deploy_contract("./lib/cairo_contracts/src/openzeppelin/token/erc20/presets/ERC20.cairo", [123, 123, 20, 2**127, 2**127, 456]).contract_address
         context.pricing_contract = deploy_contract("./src/pricing/main.cairo", [context.eth_contract]).contract_address
-        context.naming_contract = deploy_contract("./src/naming/main.cairo", [context.starknet_id_contract, context.pricing_contract, 456]).contract_address
+        context.naming_contract = deploy_contract("./src/naming/main.cairo", [context.starknet_id_contract, context.pricing_contract, 456, 0]).contract_address
         context.resolver_contract = deploy_contract("./tests/example_resolver.cairo", []).contract_address
     %}
     return ();

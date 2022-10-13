@@ -16,6 +16,4 @@ namespace StarknetID {
     func set_verifier_data(token_id, field, data) {
     }
 
-    func transferFrom(_from: felt, to: felt, token_id: Uint256) {
-    }
 }

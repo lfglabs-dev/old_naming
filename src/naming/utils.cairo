@@ -30,11 +30,11 @@ func _admin_address() -> (admin_address: felt) {
 }
 
 @storage_var
-func _pricing_contract() -> (pricing_contract: felt) {
+func _whitelisting_key() -> (whitelisting_key: felt) {
 }
 
 @storage_var
-func _premint_ended() -> (ended: felt) {
+func _pricing_contract() -> (pricing_contract: felt) {
 }
 
 func hash_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(

@@ -1,7 +1,8 @@
 %lang starknet
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.math import assert_nn, assert_le_felt
-from starkware.cairo.common.cairo_builtins import HashBuiltin
+from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
+from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.hash import hash2
 from starkware.cairo.common.alloc import alloc
@@ -19,7 +20,7 @@ from src.naming.utils import (
     DomainData,
     _admin_address,
     _pricing_contract,
-    _premint_ended,
+    _whitelisting_key,
 )
 from src.interface.starknetid import StarknetID
 from src.interface.pricing import Pricing
@@ -42,11 +43,12 @@ from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 
 @constructor
 func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    starknetid_contract_addr, pricing_contract_addr, admin
+    starknetid_contract_addr, pricing_contract_addr, admin, whitelisting_key
 ) {
     starknetid_contract.write(starknetid_contract_addr);
     _pricing_contract.write(pricing_contract_addr);
     _admin_address.write(admin);
+    _whitelisting_key.write(whitelisting_key);
     return ();
 }
 
@@ -417,28 +419,31 @@ func transfer_balance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
 }
 
 @external
-func premint{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    expiry, starknet_id, receiver_address, hashed_domain, domain
-) {
-    let (premint_ended) = _premint_ended.read();
-    with_attr error_message("Premint phase ended") {
-        assert premint_ended = FALSE;
-    }
+func whitelisted_mint{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, ecdsa_ptr: SignatureBuiltin*
+}(domain, expiry, starknet_id, receiver_address, sig: (felt, felt)) {
+    alloc_locals;
+    let (params_hash) = hash2{hash_ptr=pedersen_ptr}(domain, expiry);
+    let (params_hash) = hash2{hash_ptr=pedersen_ptr}(params_hash, starknet_id);
+    let (params_hash) = hash2{hash_ptr=pedersen_ptr}(params_hash, receiver_address);
 
-    let (naming_contract) = get_contract_address();
-    let (starknet_id_contract) = starknetid_contract.read();
+    let (whitelisting_key) = _whitelisting_key.read();
+    verify_ecdsa_signature(params_hash, whitelisting_key, sig[0], sig[1]);
 
-    StarknetID.mint(starknet_id_contract, starknet_id);
-    StarknetID.transferFrom(
-        starknet_id_contract, naming_contract, receiver_address, Uint256(starknet_id, 0)
-    );
+    let (hashed_domain) = hash_domain(1, new (domain));
     mint_domain(expiry, 0, receiver_address, hashed_domain, starknet_id, domain);
 
     return ();
 }
 
 @external
-func end_premint{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
-    _premint_ended.write(TRUE);
+func end_whitelist{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+    // Verify that caller is admin
+    let (caller) = get_caller_address();
+    let (admin_address) = _admin_address.read();
+    assert caller = admin_address;
+
+    // Set whitelist key to 0
+    _whitelisting_key.write(0);
     return ();
 }

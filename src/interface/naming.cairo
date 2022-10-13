@@ -54,9 +54,9 @@ namespace Naming {
     func transfer_balance(erc20: felt, amount: Uint256) {
     }
 
-    func premint(expiry, starknet_id, receiver_address, hashed_domain, domain) {
+    func whitelisted_mint(domain, expiry, starknet_id, receiver_address, sig: (felt, felt)) {
     }
 
-    func end_premint() {
+    func end_whitelist() {
     }
 }

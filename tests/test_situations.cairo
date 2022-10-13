@@ -8,7 +8,7 @@ func __setup__() {
     %{
         context.starknet_id_contract = deploy_contract("./lib/starknetid/src/StarknetId.cairo").contract_address
         context.pricing_contract = deploy_contract("./src/pricing/main.cairo", [123]).contract_address
-        context.naming_contract = deploy_contract("./src/naming/main.cairo", [context.starknet_id_contract, context.pricing_contract, 456]).contract_address
+        context.naming_contract = deploy_contract("./src/naming/main.cairo", [context.starknet_id_contract, context.pricing_contract, 456, 1576987121283045618657875225183003300580199140020787494777499595331436496159]).contract_address
         context.resolver_contract = deploy_contract("./tests/example_resolver.cairo", []).contract_address
     %}
     return ();
@@ -475,7 +475,7 @@ func test_resolver{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuilti
 }
 
 @external
-func test_premint{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {
+func test_whitelist{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {
     tempvar starknet_id_contract;
     tempvar naming_contract;
     %{
@@ -486,26 +486,24 @@ func test_premint{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin
         warp(1, context.naming_contract)
     %}
 
-    Naming.premint(
+    let token_id = 1;
+    StarknetID.mint(starknet_id_contract, token_id);
+
+    // th0rgal encoded
+    let th0rgal_string = 33133781693;
+
+    Naming.whitelisted_mint(
         naming_contract,
-        2980446980,
+        th0rgal_string,
+        5065683439,
         1,
-        0x123,
-        1520467356727709481761763983664372423051404589596377879851761672477786267837,
-        193262559525998381,
+        456,
+        (1522643108794616418505513410387255737891428696252571800235957769297046634196, 544592148127255184291702959860059007721300895109758463256412932514096967146),
     );
 
-    Naming.end_premint(naming_contract);
-
-    %{ expect_revert(error_message="Premint phase ended") %}
-    Naming.premint(
-        naming_contract,
-        2980446980,
-        2,
-        0x1234,
-        2460964344094842021493853224985912260165096286218338421764637463780759083180,
-        199375555272723757,
-    );
+    %{ expect_revert("TRANSACTION_FAILED") %}
+    // Signature (1, 1), is invalid, with respect to the public key 1576987121283045618657875225183003300580199140020787494777499595331436496159, and the message hash 535384430805153015377328413841468779397008938018306822607442420255283071.
+    Naming.whitelisted_mint(naming_contract, th0rgal_string, 5065683439, 1, 456, (1, 1));
 
     return ();
 }

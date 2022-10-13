@@ -7,7 +7,6 @@ libs_path = "lib"
 ["protostar.contracts"]
 naming = ["src/naming/main.cairo"]
 pricing = ["src/pricing/main.cairo"]
-premint = ["src/premint/main.cairo"]
 
 ["protostar.shared_command_configs"]
 cairo-path = ["./lib/cairo_contracts/src"]
