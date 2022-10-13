@@ -6,15 +6,14 @@ from starkware.crypto.signature.signature import private_to_stark_key, sign
 
 # params
 argv = sys.argv
-if len(argv) < 6:
+if len(argv) < 5:
     print("[ERROR] Invalid amount of parameters")
-    print("Usage: ./whitelist.py priv_key domain expiry starknet_id receiver_address")
+    print("Usage: ./whitelist.py priv_key domain expiry receiver_address")
     quit()
 priv_key = argv[1]
 domain = argv[2]
 expiry = argv[3]
-starknet_id = argv[4]
-receiver_address = argv[5]
+receiver_address = argv[4]
 
 
 # domain encoding
@@ -50,7 +49,7 @@ def encode(decoded):
 encoded_domain = encode(domain)
 
 hashed = pedersen_hash(
-    pedersen_hash(pedersen_hash(encoded_domain, int(expiry)), int(starknet_id)),
+    pedersen_hash(encoded_domain, int(expiry)),
     int(receiver_address),
 )
 signed = sign(hashed, int(priv_key))

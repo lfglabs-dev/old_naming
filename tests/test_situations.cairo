@@ -481,7 +481,8 @@ func test_whitelist{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuilt
     %{
         ids.starknet_id_contract = context.starknet_id_contract
         ids.naming_contract = context.naming_contract
-        stop_prank_callable = start_prank(456)
+        stop_prank_callable1 = start_prank(456)
+        stop_prank_callable2 = start_prank(456, context.naming_contract)
         stop_mock = mock_call(123, "transferFrom", [1])
         warp(1, context.naming_contract)
     %}
@@ -498,12 +499,16 @@ func test_whitelist{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuilt
         5065683439,
         1,
         456,
-        (1522643108794616418505513410387255737891428696252571800235957769297046634196, 544592148127255184291702959860059007721300895109758463256412932514096967146),
+        (2796114368656848424401471571964226838027845300256693162318739706208869605847, 2616729108859312328977191098964106910423506378607747406940981178386941952093),
     );
 
     %{ expect_revert("TRANSACTION_FAILED") %}
     // Signature (1, 1), is invalid, with respect to the public key 1576987121283045618657875225183003300580199140020787494777499595331436496159, and the message hash 535384430805153015377328413841468779397008938018306822607442420255283071.
     Naming.whitelisted_mint(naming_contract, th0rgal_string, 5065683439, 1, 456, (1, 1));
+    %{
+        stop_prank_callable1()
+        stop_prank_callable2()
+    %}
 
     return ();
 }

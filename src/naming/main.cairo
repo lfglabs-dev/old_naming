@@ -21,6 +21,7 @@ from src.naming.utils import (
     _admin_address,
     _pricing_contract,
     _whitelisting_key,
+    blacklisted_point,
 )
 from src.interface.starknetid import StarknetID
 from src.interface.pricing import Pricing
@@ -423,14 +424,28 @@ func whitelisted_mint{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, ecdsa_ptr: SignatureBuiltin*
 }(domain, expiry, starknet_id, receiver_address, sig: (felt, felt)) {
     alloc_locals;
+
+    let (caller) = get_caller_address();
     let (params_hash) = hash2{hash_ptr=pedersen_ptr}(domain, expiry);
-    let (params_hash) = hash2{hash_ptr=pedersen_ptr}(params_hash, starknet_id);
     let (params_hash) = hash2{hash_ptr=pedersen_ptr}(params_hash, receiver_address);
 
     let (whitelisting_key) = _whitelisting_key.read();
     verify_ecdsa_signature(params_hash, whitelisting_key, sig[0], sig[1]);
 
     let (hashed_domain) = hash_domain(1, new (domain));
+    let (is_blacklisted) = blacklisted_point.read(sig[0]);
+    with_attr error_message("This signature has already been used") {
+        assert is_blacklisted = 0;
+    }
+
+    // blacklisting r should be enough since it depends on the "secure random point" it should never be used again
+    // to anyone willing to improve this check in the future, please be careful with s, as (r, -s) is also a valid signature
+    blacklisted_point.write(sig[0], 1);
+
+    with_attr error_message("Only the receiver can mint this") {
+        assert caller = receiver_address;
+    }
+
     mint_domain(expiry, 0, receiver_address, hashed_domain, starknet_id, domain);
 
     return ();

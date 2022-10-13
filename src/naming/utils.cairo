@@ -37,6 +37,10 @@ func _whitelisting_key() -> (whitelisting_key: felt) {
 func _pricing_contract() -> (pricing_contract: felt) {
 }
 
+@storage_var
+func blacklisted_point(r) -> (blacklisted: felt) {
+}
+
 func hash_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     domain_len: felt, domain: felt*
 ) -> (hashed_domain: felt) {
