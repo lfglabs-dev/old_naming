@@ -192,11 +192,13 @@ func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
 ) {
     alloc_locals;
 
-    // Verify that the starknet.id is owned by the caller
-    let (caller) = get_caller_address();
+    // Verify that the starknet.id doesn't already manage a domain
     let (contract_addr) = starknetid_contract.read();
-    let (starknet_id_owner) = StarknetID.owner_of(contract_addr, token_id);
-    assert caller = starknet_id_owner;
+    let (naming_contract) = get_contract_address();
+    let (data) = StarknetID.get_verifier_data(contract_addr, token_id, 'name', naming_contract);
+    with_attr error_message("This StarknetID already has a domain") {
+        assert data = 0;
+    }
 
     // Verify that the domain is not registered already or expired
     let (current_timestamp) = get_block_timestamp();
@@ -206,6 +208,7 @@ func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     let (booking_data: (owner: felt, expiry: felt)) = booked_domain.read(hashed_domain);
     let booked = is_le(current_timestamp, booking_data.expiry);
 
+    let (caller) = get_caller_address();
     if (booked == TRUE) {
         with_attr error_message("Someone else booked this domain") {
             assert booking_data.owner = caller;
@@ -220,6 +223,50 @@ func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     }
 
     pay_buy_domain(current_timestamp, days, caller, domain);
+    let expiry = current_timestamp + 86400 * days;
+    with_attr error_message("A domain can't be purchased for more than 25 years") {
+        assert_le_felt(expiry, current_timestamp + 86400 * 9125);  // 25*365
+    }
+    mint_domain(expiry, resolver, address, hashed_domain, token_id, domain);
+    return ();
+}
+
+@l1_handler
+func buy_from_eth{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    from_address: felt, token_id: felt, domain: felt, days: felt, resolver: felt, address: felt
+) {
+    alloc_locals;
+    // Ensure the caller is the right L1 contract
+    assert from_address = 0x12345;
+
+    // Verify that the starknet.id doesn't already manage a domain
+    let (contract_addr) = starknetid_contract.read();
+    let (naming_contract) = get_contract_address();
+    let (data) = StarknetID.get_verifier_data(contract_addr, token_id, 'name', naming_contract);
+    with_attr error_message("This StarknetID already has a domain") {
+        assert data = 0;
+    }
+
+    // Verify that the domain is not registered already or expired
+    let (current_timestamp) = get_block_timestamp();
+    let (hashed_domain) = hash_domain(1, new (domain));
+
+    // stop front running/mev on L2
+    let (booking_data: (owner: felt, expiry: felt)) = booked_domain.read(hashed_domain);
+    let booked = is_le(current_timestamp, booking_data.expiry);
+    with_attr error_message("Someone else booked this domain on L2") {
+        assert booked = FALSE;
+    }
+
+    let (domain_data) = _domain_data.read(hashed_domain);
+    let is_expired = is_le(domain_data.expiry, current_timestamp);
+
+    if (domain_data.owner != 0) {
+        assert is_expired = TRUE;
+    }
+
+    // no need to pay on l2, already paid on l1
+    // pay_buy_domain(current_timestamp, days, caller, domain);
     let expiry = current_timestamp + 86400 * days;
     with_attr error_message("A domain can't be purchased for more than 25 years") {
         assert_le_felt(expiry, current_timestamp + 86400 * 9125);  // 25*365
