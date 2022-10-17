@@ -21,6 +21,7 @@ from src.naming.utils import (
     _admin_address,
     _pricing_contract,
     _whitelisting_key,
+    _l1_contract,
     blacklisted_point,
 )
 from src.interface.starknetid import StarknetID
@@ -44,12 +45,13 @@ from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 
 @constructor
 func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    starknetid_contract_addr, pricing_contract_addr, admin, whitelisting_key
+    starknetid_contract_addr, pricing_contract_addr, admin, whitelisting_key, l1_contract
 ) {
     starknetid_contract.write(starknetid_contract_addr);
     _pricing_contract.write(pricing_contract_addr);
     _admin_address.write(admin);
     _whitelisting_key.write(whitelisting_key);
+    _l1_contract.write(l1_contract);
     return ();
 }
 
@@ -237,7 +239,8 @@ func buy_from_eth{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
 ) {
     alloc_locals;
     // Ensure the caller is the right L1 contract
-    assert from_address = 0x12345;
+    let (l1_contract) = _l1_contract.read();
+    assert from_address = l1_contract;
 
     // Verify that the starknet.id doesn't already manage a domain
     let (contract_addr) = starknetid_contract.read();
@@ -253,9 +256,8 @@ func buy_from_eth{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
 
     // stop front running/mev on L2
     let (booking_data: (owner: felt, expiry: felt)) = booked_domain.read(hashed_domain);
-    let booked = is_le(current_timestamp, booking_data.expiry);
     with_attr error_message("Someone else booked this domain on L2") {
-        assert booked = FALSE;
+        assert_le_felt(booking_data.expiry, current_timestamp);
     }
 
     let (domain_data) = _domain_data.read(hashed_domain);
