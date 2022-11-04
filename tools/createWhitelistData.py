@@ -1,19 +1,17 @@
 #!/usr/bin/env python3
 import sys
-
+import json
 from starkware.crypto.signature.fast_pedersen_hash import pedersen_hash
-from starkware.crypto.signature.signature import private_to_stark_key, sign
+from starkware.crypto.signature.signature import sign
 
 # params
 argv = sys.argv
-if len(argv) < 5:
+if len(argv) < 2:
     print("[ERROR] Invalid amount of parameters")
     print("Usage: ./whitelist.py priv_key domain expiry receiver_address")
     quit()
 priv_key = argv[1]
-domain = argv[2]
-expiry = argv[3]
-receiver_address = argv[4]
+expiry = argv[2]
 
 
 # domain encoding
@@ -45,12 +43,35 @@ def encode(decoded):
     return encoded
 
 
-# compute signature
-encoded_domain = encode(domain)
+whitelists_data = dict()
 
-hashed = pedersen_hash(
-    pedersen_hash(encoded_domain, int(expiry)),
-    int(receiver_address),
-)
-signed = sign(hashed, int(priv_key))
-print(signed)
+with open('./tools/whitelists.json') as json_file:
+    whitelistedDomains = json.loads(json_file.read())
+
+for i in range(len(whitelistedDomains)):
+    whitelists_data[whitelistedDomains[i]["receiver_address"]] = []
+
+
+for i in range(len(whitelistedDomains)):
+    # compute signature
+    domain = whitelistedDomains[i]["domain"]
+    encoded_domain = encode(domain)
+    hashed = pedersen_hash(
+        pedersen_hash(encoded_domain, int(expiry)),
+        int(whitelistedDomains[i]["receiver_address"]),
+    )
+    signed = sign(hashed, int(priv_key))
+    whitelist_info = {
+        "domain": whitelistedDomains[i]["domain"],
+        "signature": signed,
+        "expiry": expiry,
+    }
+    whitelists_data[whitelistedDomains[i]["receiver_address"]].append(whitelist_info)
+ 
+        
+    with open('./tools/whitelistsdata.json', 'w') as json_file:
+        json_object = json.dumps(whitelists_data)
+        json_file.write(json_object)
+        
+        
+
