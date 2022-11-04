@@ -516,3 +516,36 @@ func test_whitelist{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuilt
 
     return ();
 }
+
+@external
+func test_end_whitelist{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {
+    tempvar starknet_id_contract;
+    tempvar naming_contract;
+    %{
+        ids.starknet_id_contract = context.starknet_id_contract
+        ids.naming_contract = context.naming_contract
+        stop_prank_callable1 = start_prank(456)
+        stop_prank_callable2 = start_prank(456, context.naming_contract)
+        stop_mock = mock_call(123, "transferFrom", [1])
+        warp(1, context.naming_contract)
+    %}
+
+    let token_id = 1;
+    StarknetID.mint(starknet_id_contract, token_id);
+
+    // th0rgal encoded
+    let th0rgal_string = 33133781693;
+
+    Naming.end_whitelist(naming_contract);
+    %{ expect_revert("TRANSACTION_FAILED") %}
+    Naming.whitelisted_mint(
+        naming_contract,
+        th0rgal_string,
+        5065683439,
+        1,
+        456,
+        (2796114368656848424401471571964226838027845300256693162318739706208869605847, 2616729108859312328977191098964106910423506378607747406940981178386941952093),
+    );
+
+    return ();
+}
