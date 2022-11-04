@@ -8,7 +8,7 @@ func __setup__() {
     %{
         context.starknet_id_contract = deploy_contract("./lib/starknetid/src/StarknetId.cairo").contract_address
         context.pricing_contract = deploy_contract("./src/pricing/main.cairo", [123]).contract_address
-        context.naming_contract = deploy_contract("./src/naming/main.cairo", [context.starknet_id_contract, context.pricing_contract, 456, 1576987121283045618657875225183003300580199140020787494777499595331436496159]).contract_address
+        context.naming_contract = deploy_contract("./src/naming/main.cairo", [context.starknet_id_contract, context.pricing_contract, 456, 1576987121283045618657875225183003300580199140020787494777499595331436496159, 0]).contract_address
         context.resolver_contract = deploy_contract("./tests/example_resolver.cairo", []).contract_address
     %}
     return ();
