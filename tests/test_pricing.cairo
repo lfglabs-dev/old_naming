@@ -19,10 +19,29 @@ func test_buy_price{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuilt
     tempvar pricing_contract;
     %{ ids.pricing_contract = context.pricing_contract %}
 
+
+    // Test with "b" / 1 letter and one year
+    let (erc20, price) = Pricing.compute_buy_price(pricing_contract, 1, 365);
+    assert erc20 = 123;
+    assert price.low = 390000000000000180;
+    assert price.high = 0;
+
+    // Test with "be" / 2 letters and one year
+    let (erc20, price) = Pricing.compute_buy_price(pricing_contract, 153, 365);
+    assert erc20 = 123;
+    assert price.low = 373999999999999875;
+    assert price.high = 0;
+
     // Test with "ben" / 3 letters and one year
     let (erc20, price) = Pricing.compute_buy_price(pricing_contract, 18925, 365);
     assert erc20 = 123;
     assert price.low = 339999999999999820;
+    assert price.high = 0;
+
+    // Test with "benj" / 4 letters and one year
+    let (erc20, price) = Pricing.compute_buy_price(pricing_contract, 512773, 365);
+    assert erc20 = 123;
+    assert price.low = 84999999999999955;
     assert price.high = 0;
 
     // Test with "chocolate" / 9 letters and one year
