@@ -1,3 +1,0 @@
-[submodule "starknetid"]
-	path = lib/starknetid
-	url = https://github.com/starknet-id/contract
