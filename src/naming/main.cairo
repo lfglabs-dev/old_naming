@@ -43,8 +43,8 @@ from src.naming.registration import (
 from src.naming.utils import domain_to_resolver
 from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 
-@constructor
-func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+@external
+func initializer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     starknetid_contract_addr, pricing_contract_addr, admin, whitelisting_key, l1_contract
 ) {
     starknetid_contract.write(starknetid_contract_addr);
@@ -509,5 +509,17 @@ func end_whitelist{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
 
     // Set whitelist key to 0
     _whitelisting_key.write(0);
+    return ();
+}
+
+@external
+func set_l1_contract{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(l1_contract) {
+    // Verify that caller is admin
+    let (caller) = get_caller_address();
+    let (admin_address) = _admin_address.read();
+    assert caller = admin_address;
+
+    // Set l1_contract address
+    _l1_contract.write(l1_contract);
     return ();
 }
