@@ -2,6 +2,8 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from src.interface.pricing import Pricing
 from src.pricing.main import get_amount_of_chars
+from starkware.cairo.common.math import split_felt
+from starkware.cairo.common.uint256 import Uint256
 
 @external
 func __setup__() {
@@ -32,36 +34,41 @@ func test_buy_price{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuilt
     let (erc20, price) = Pricing.compute_buy_price(pricing_contract, 19565965532212, 1825);
     assert price.low = 26999999999999625;
     assert price.high = 0;
-    
+
     // Test with "chocolate" / 9 letters and 3 years
     let (erc20, price) = Pricing.compute_buy_price(pricing_contract, 19565965532212, 1095);
     assert price.low = 17999999999999750;
     assert price.high = 0;
- 
+
     // Test with "chocolate" / 9 letters and 20 years
     let (erc20, price) = Pricing.compute_buy_price(pricing_contract, 19565965532212, 7300);
     assert price.low = 161999999999997750;
     assert price.high = 0;
-    
+
     return ();
 }
 
 @external
 func test_get_amount_of_chars{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
     // ""
-    let chars_amount = get_amount_of_chars(0);
+    let chars_amount = get_amount_of_chars(Uint256(0, 0));
     assert chars_amount = 0;
 
     // "toto"
-    let chars_amount = get_amount_of_chars(796195);
+    let chars_amount = get_amount_of_chars(Uint256(796195, 0));
     assert chars_amount = 4;
 
     // "aloha"
-    let chars_amount = get_amount_of_chars(77554770);
+    let chars_amount = get_amount_of_chars(Uint256(77554770, 0));
     assert chars_amount = 5;
 
     // "chocolate"
-    let chars_amount = get_amount_of_chars(19565965532212);
+    let chars_amount = get_amount_of_chars(Uint256(19565965532212, 0));
     assert chars_amount = 9;
+
+    // "这来abcdefghijklmopqrstuvwyq1234"
+    let (high, low) = split_felt(801855144733576077820330221438165587969903898313);
+    let chars_amount = get_amount_of_chars(Uint256(low, high));
+    assert chars_amount = 30;
     return ();
 }
