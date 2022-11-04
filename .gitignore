@@ -1,5 +1,8 @@
 env
 
+### Protostar ###
+migrations/*.json
+
 ### Nile ###
 artifacts
 *.deployments.txt

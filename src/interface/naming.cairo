@@ -59,4 +59,10 @@ namespace Naming {
 
     func end_whitelist() {
     }
+
+    func set_l1_contract(l1_contract) {
+    }
+
+    func upgrade(new_implementation: felt) {
+    }
 }

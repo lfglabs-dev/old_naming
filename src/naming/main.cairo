@@ -9,6 +9,7 @@ from starkware.cairo.common.alloc import alloc
 from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp
 from starkware.cairo.common.math_cmp import is_le, is_not_zero
 from starkware.starknet.common.syscalls import get_contract_address
+from cairo_contracts.src.openzeppelin.upgrades.library import Proxy
 
 from src.naming.utils import (
     _domain_data,
@@ -521,5 +522,22 @@ func set_l1_contract{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
 
     // Set l1_contract address
     _l1_contract.write(l1_contract);
+    return ();
+}
+
+//
+// UPGRADABILITY
+//
+@external
+func upgrade{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    new_implementation: felt
+) {
+    // Verify that caller is admin
+    let (caller) = get_caller_address();
+    let (admin_address) = _admin_address.read();
+    assert caller = admin_address;
+
+    // Set contract implementation
+    Proxy._set_implementation_hash(new_implementation);
     return ();
 }
