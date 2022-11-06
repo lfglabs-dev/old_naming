@@ -47,9 +47,10 @@ def encode(decoded):
 
 # compute signature
 encoded_domain = encode(domain)
+print("encoded:", encoded_domain)
 hashed = pedersen_hash(
     pedersen_hash(encoded_domain, int(expiry)),
     int(receiver_address),
 )
 signed = sign(hashed, int(priv_key))
-print(signed)
+print("signature:", signed)
