@@ -1,6 +1,6 @@
 %lang starknet
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from src.interface.starknetid import StarknetID
+from src.interface.starknetid import StarknetId
 from src.interface.naming import Naming
 
 @external
@@ -31,7 +31,7 @@ func test_simple_buy{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuil
     %}
 
     let token_id = 1;
-    StarknetID.mint(starknet_id_contract, token_id);
+    StarknetId.mint(starknet_id_contract, token_id);
     // th0rgal encoded
     let th0rgal_string = 28235132438;
 
@@ -60,7 +60,7 @@ func test_simple_buy_fails{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: Ha
     %}
 
     let token_id = 1;
-    StarknetID.mint(starknet_id_contract, token_id);
+    StarknetId.mint(starknet_id_contract, token_id);
     // th0rgal encoded
     let th0rgal_string = 28235132438;
 
@@ -86,7 +86,7 @@ func test_booked_buy{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuil
     %}
 
     let token_id = 1;
-    StarknetID.mint(starknet_id_contract, token_id);
+    StarknetId.mint(starknet_id_contract, token_id);
     // th0rgal encoded
     let th0rgal_string = 28235132438;
     tempvar hashed_th0rgal_string;
@@ -137,7 +137,7 @@ func test_booked_buy_fails{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: Ha
     %}
 
     let token_id = 1;
-    StarknetID.mint(starknet_id_contract, token_id);
+    StarknetId.mint(starknet_id_contract, token_id);
     Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 789);
     let (addr) = Naming.domain_to_address(naming_contract, 1, new (th0rgal_string));
     assert addr = 789;
@@ -164,7 +164,7 @@ func test_set_domain_to_address{syscall_ptr: felt*, range_check_ptr, pedersen_pt
     %}
 
     let token_id = 1;
-    StarknetID.mint(starknet_id_contract, token_id);
+    StarknetId.mint(starknet_id_contract, token_id);
     // th0rgal encoded
     let th0rgal_string = 28235132438;
 
@@ -199,7 +199,7 @@ func test_set_domain_to_address_fail{
     %}
 
     let token_id = 1;
-    StarknetID.mint(starknet_id_contract, token_id);
+    StarknetId.mint(starknet_id_contract, token_id);
     // th0rgal encoded
     let th0rgal_string = 28235132438;
 
@@ -235,7 +235,7 @@ func test_set_address_to_domain{syscall_ptr: felt*, range_check_ptr, pedersen_pt
     %}
 
     let token_id = 1;
-    StarknetID.mint(starknet_id_contract, token_id);
+    StarknetId.mint(starknet_id_contract, token_id);
     // th0rgal encoded
     let th0rgal_string = 28235132438;
     %{
@@ -272,7 +272,7 @@ func test_set_address_to_domain_fail{
     %}
 
     let token_id = 1;
-    StarknetID.mint(starknet_id_contract, token_id);
+    StarknetId.mint(starknet_id_contract, token_id);
     // th0rgal encoded
     let th0rgal_string = 28235132438;
     Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456);
@@ -305,10 +305,10 @@ func test_transfer_domain{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: Has
     %}
 
     let token_id = 1;
-    StarknetID.mint(starknet_id_contract, token_id);
+    StarknetId.mint(starknet_id_contract, token_id);
 
     let token_id2 = 2;
-    StarknetID.mint(starknet_id_contract, token_id2);
+    StarknetId.mint(starknet_id_contract, token_id2);
 
     // th0rgal encoded
     let th0rgal_string = 28235132438;
@@ -339,10 +339,10 @@ func test_transfer_domain_fail{syscall_ptr: felt*, range_check_ptr, pedersen_ptr
     %}
 
     let token_id = 1;
-    StarknetID.mint(starknet_id_contract, token_id);
+    StarknetId.mint(starknet_id_contract, token_id);
 
     let token_id2 = 2;
-    StarknetID.mint(starknet_id_contract, token_id2);
+    StarknetId.mint(starknet_id_contract, token_id2);
 
     // th0rgal encoded
     let th0rgal_string = 28235132438;
@@ -378,10 +378,10 @@ func test_transfer_subdomain{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: 
     %}
 
     let token_id = 1;
-    StarknetID.mint(starknet_id_contract, token_id);
+    StarknetId.mint(starknet_id_contract, token_id);
 
     let token_id2 = 2;
-    StarknetID.mint(starknet_id_contract, token_id2);
+    StarknetId.mint(starknet_id_contract, token_id2);
 
     // th0rgal encoded
     let th0rgal_string = 28235132438;
@@ -416,10 +416,10 @@ func test_transfer_subdomain_fail{syscall_ptr: felt*, range_check_ptr, pedersen_
     %}
 
     let token_id = 1;
-    StarknetID.mint(starknet_id_contract, token_id);
+    StarknetId.mint(starknet_id_contract, token_id);
 
     let token_id2 = 2;
-    StarknetID.mint(starknet_id_contract, token_id2);
+    StarknetId.mint(starknet_id_contract, token_id2);
 
     // th0rgal encoded
     let th0rgal_string = 28235132438;
@@ -456,7 +456,7 @@ func test_resolver{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuilti
     %}
 
     let token_id = 1;
-    StarknetID.mint(starknet_id_contract, token_id);
+    StarknetId.mint(starknet_id_contract, token_id);
 
     // th0rgal encoded
     let th0rgal_string = 28235132438;
@@ -492,7 +492,7 @@ func test_whitelist{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuilt
     %}
 
     let token_id = 1;
-    StarknetID.mint(starknet_id_contract, token_id);
+    StarknetId.mint(starknet_id_contract, token_id);
 
     // th0rgal encoded
     let th0rgal_string = 33133781693;
@@ -531,7 +531,7 @@ func test_end_whitelist{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashB
     %}
 
     let token_id = 1;
-    StarknetID.mint(starknet_id_contract, token_id);
+    StarknetId.mint(starknet_id_contract, token_id);
 
     // th0rgal encoded
     let th0rgal_string = 33133781693;

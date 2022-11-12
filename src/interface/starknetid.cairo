@@ -3,7 +3,7 @@
 from starkware.cairo.common.uint256 import Uint256
 
 @contract_interface
-namespace StarknetID {
+namespace StarknetId {
     func mint(token_id) {
     }
 

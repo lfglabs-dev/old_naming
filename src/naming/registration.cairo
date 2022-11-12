@@ -12,7 +12,7 @@ from src.naming.utils import (
 from src.interface.pricing import Pricing
 from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp
 from starkware.cairo.common.math import assert_nn, assert_le
-from src.interface.starknetid import StarknetID
+from src.interface.starknetid import StarknetId
 from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 
 @event
@@ -72,7 +72,7 @@ func mint_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     starknet_id_update.emit(1, new (domain), token_id, expiry);
     domain_to_addr_update.emit(1, new (domain), target_address);
     let (contract) = starknetid_contract.read();
-    StarknetID.set_verifier_data(contract, token_id, 'name', hashed_domain);
+    StarknetId.set_verifier_data(contract, token_id, 'name', hashed_domain);
 
     return ();
 }
@@ -105,7 +105,7 @@ func fetch_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     if (starknet_id == 0) {
         return (0,);
     }
-    let (starknet_id_owner) = StarknetID.owner_of(contract_addr, starknet_id);
+    let (starknet_id_owner) = StarknetId.owner_of(contract_addr, starknet_id);
     return (starknet_id_owner,);
 }
 

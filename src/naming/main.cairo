@@ -25,7 +25,7 @@ from src.naming.utils import (
     _l1_contract,
     blacklisted_point,
 )
-from src.interface.starknetid import StarknetID
+from src.interface.starknetid import StarknetId
 from src.interface.pricing import Pricing
 from src.interface.resolver import Resolver
 from src.naming.registration import (
@@ -198,8 +198,8 @@ func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     // Verify that the starknet.id doesn't already manage a domain
     let (contract_addr) = starknetid_contract.read();
     let (naming_contract) = get_contract_address();
-    let (data) = StarknetID.get_verifier_data(contract_addr, token_id, 'name', naming_contract);
-    with_attr error_message("This StarknetID already has a domain") {
+    let (data) = StarknetId.get_verifier_data(contract_addr, token_id, 'name', naming_contract);
+    with_attr error_message("This StarknetId already has a domain") {
         assert data = 0;
     }
 
@@ -246,8 +246,8 @@ func buy_from_eth{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
     // Verify that the starknet.id doesn't already manage a domain
     let (contract_addr) = starknetid_contract.read();
     let (naming_contract) = get_contract_address();
-    let (data) = StarknetID.get_verifier_data(contract_addr, token_id, 'name', naming_contract);
-    with_attr error_message("This StarknetID already has a domain") {
+    let (data) = StarknetId.get_verifier_data(contract_addr, token_id, 'name', naming_contract);
+    with_attr error_message("This StarknetId already has a domain") {
         assert data = 0;
     }
 
@@ -326,7 +326,7 @@ func transfer_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
     let (current_domain_data) = _domain_data.read(hashed_domain);
     let (contract) = starknetid_contract.read();
     let (naming_contract) = get_contract_address();
-    let (data: felt) = StarknetID.get_verifier_data(
+    let (data: felt) = StarknetId.get_verifier_data(
         contract, target_token_id, 'name', naming_contract
     );
     // ensure target doesn't already have a domain
@@ -347,8 +347,8 @@ func transfer_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
         _domain_data.write(hashed_domain, new_domain_data);
         starknet_id_update.emit(0, new (), current_domain_data.owner, 0);
         starknet_id_update.emit(domain_len, domain, target_token_id, current_domain_data.expiry);
-        StarknetID.set_verifier_data(contract, current_domain_data.owner, 'name', 0);
-        StarknetID.set_verifier_data(contract, target_token_id, 'name', hashed_domain);
+        StarknetId.set_verifier_data(contract, current_domain_data.owner, 'name', 0);
+        StarknetId.set_verifier_data(contract, target_token_id, 'name', hashed_domain);
         return ();
     } else {
         let new_domain_data = DomainData(
@@ -362,8 +362,8 @@ func transfer_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
         _domain_data.write(hashed_domain, new_domain_data);
         starknet_id_update.emit(0, new (), current_domain_data.owner, 0);
         starknet_id_update.emit(domain_len, domain, target_token_id, current_domain_data.expiry);
-        StarknetID.set_verifier_data(contract, current_domain_data.owner, 'name', 0);
-        StarknetID.set_verifier_data(contract, target_token_id, 'name', hashed_domain);
+        StarknetId.set_verifier_data(contract, current_domain_data.owner, 'name', 0);
+        StarknetId.set_verifier_data(contract, target_token_id, 'name', hashed_domain);
         return ();
     }
 }
@@ -433,8 +433,8 @@ func set_domain_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
     starknet_id_update.emit(0, new (), current_domain_data.owner, 0);
     starknet_id_update.emit(domain_len, domain, token_id, current_domain_data.expiry);
     let (contract) = starknetid_contract.read();
-    StarknetID.set_verifier_data(contract, current_domain_data.owner, 'name', 0);
-    StarknetID.set_verifier_data(contract, token_id, 'name', hashed_domain);
+    StarknetId.set_verifier_data(contract, current_domain_data.owner, 'name', 0);
+    StarknetId.set_verifier_data(contract, token_id, 'name', hashed_domain);
 
     return ();
 }

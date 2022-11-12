@@ -1,6 +1,6 @@
 %lang starknet
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from src.interface.starknetid import StarknetID
+from src.interface.starknetid import StarknetId
 from src.interface.naming import Naming
 from starkware.cairo.common.uint256 import Uint256
 from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
@@ -38,7 +38,7 @@ func test_simple_buy{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuil
     %}
 
     let token_id = 1;
-    StarknetID.mint(starknet_id_contract, token_id);
+    StarknetId.mint(starknet_id_contract, token_id);
     // th0rgal encoded
     let th0rgal_string = 28235132438;
 
