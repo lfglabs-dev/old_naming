@@ -68,7 +68,7 @@ async def main():
     proxy_file.close()
     deployment_resp = await account.deploy(deploy_contract_tx)
     print("deployment txhash:", hex(deployment_resp.transaction_hash))
-    print("proxied pricing contract address:", hex(deployment_resp.contract_address))
+    print("proxied naming contract address:", hex(deployment_resp.contract_address))
 
 
 if __name__ == "__main__":
