@@ -23,11 +23,12 @@ network_base_url = "https://alpha4-2.starknet.io/"
 chainid: StarknetChainId = StarknetChainId.TESTNET
 max_fee = int(1e16)
 
-pricing = 0
+pricing = 0  # 0x6F670AAF8279931E6DE21F831530CB990DA81F51717D7E80E442AA010BC6EF5
+l1_contract = 0  # 0xDF8C42FABB2A3E170603CBCB7AC3FA03F125CE6C
 whitelisting_key = (
     1576987121283045618657875225183003300580199140020787494777499595331436496159
 )
-l1_contract = 0
+starknet_id = 0x3B960D41DFBE13C9F0C712D81627CF58DC3538180B4E95F9CBEC50A29985E80
 
 
 async def main():
@@ -60,8 +61,12 @@ async def main():
         constructor_calldata=[
             logic_contract_class_hash,
             get_selector_from_name("initializer"),
-            1,
+            5,
+            starknet_id,
+            pricing,
             admin,
+            whitelisting_key,
+            l1_contract,
         ],
         version=1,
     )
