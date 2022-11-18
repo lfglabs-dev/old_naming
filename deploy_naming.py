@@ -45,7 +45,7 @@ async def main():
         supported_tx_version=1,
     )
 
-    logic_file = open("./build/pricing.json", "r")
+    logic_file = open("./build/naming.json", "r")
     declare_contract_tx = await account.sign_declare_transaction(
         compiled_contract=logic_file.read(), max_fee=max_fee
     )
