@@ -15,12 +15,13 @@ deployer_account_addr = (
     0x048F24D0D0618FA31813DB91A45D8BE6C50749E5E19EC699092CE29ABE809294
 )
 deployer_account_private_key = int(argv[1])
+token = argv[2] if len(argv) > 2 else None
 admin = 0x048F24D0D0618FA31813DB91A45D8BE6C50749E5E19EC699092CE29ABE809294
 # MAINNET: https://alpha-mainnet.starknet.io
 # TESTNET: https://alpha4.starknet.io
 # TESTNET2: https://alpha4-2.starknet.io
-network_base_url = "https://alpha4-2.starknet.io/"
-chainid: StarknetChainId = StarknetChainId.TESTNET
+network_base_url = "https://alpha-mainnet.starknet.io/"
+chainid: StarknetChainId = StarknetChainId.MAINNET
 max_fee = int(1e16)
 
 pricing = 0  # 0x6F670AAF8279931E6DE21F831530CB990DA81F51717D7E80E442AA010BC6EF5
@@ -28,7 +29,7 @@ l1_contract = 0  # 0xDF8C42FABB2A3E170603CBCB7AC3FA03F125CE6C
 whitelisting_key = (
     1576987121283045618657875225183003300580199140020787494777499595331436496159
 )
-starknet_id = 0x3B960D41DFBE13C9F0C712D81627CF58DC3538180B4E95F9CBEC50A29985E80
+starknet_id = 0x030A9C7F261D34F4209E0B2466BC1FDD4AEAF87187DB7897FEBED83645905BBD
 
 
 async def main():
@@ -51,7 +52,9 @@ async def main():
         compiled_contract=logic_file.read(), max_fee=max_fee
     )
     logic_file.close()
-    logic_declaration = await account.declare(declare_contract_tx)
+    logic_declaration = await client.declare(
+        transaction=declare_contract_tx, token=token
+    )
     logic_contract_class_hash = logic_declaration.class_hash
     print("implementation class hash:", hex(logic_contract_class_hash))
 
@@ -71,7 +74,7 @@ async def main():
         version=1,
     )
     proxy_file.close()
-    deployment_resp = await account.deploy(deploy_contract_tx)
+    deployment_resp = await client.deploy(transaction=deploy_contract_tx, token=token)
     print("deployment txhash:", hex(deployment_resp.transaction_hash))
     print("proxied naming contract address:", hex(deployment_resp.contract_address))
 

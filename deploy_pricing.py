@@ -15,12 +15,13 @@ deployer_account_addr = (
     0x048F24D0D0618FA31813DB91A45D8BE6C50749E5E19EC699092CE29ABE809294
 )
 deployer_account_private_key = int(argv[1])
+token = argv[2] if len(argv) > 2 else None
 admin = 0x048F24D0D0618FA31813DB91A45D8BE6C50749E5E19EC699092CE29ABE809294
 # MAINNET: https://alpha-mainnet.starknet.io
 # TESTNET: https://alpha4.starknet.io
 # TESTNET2: https://alpha4-2.starknet.io
-network_base_url = "https://alpha4-2.starknet.io/"
-chainid: StarknetChainId = StarknetChainId.TESTNET
+network_base_url = "https://alpha-mainnet.starknet.io/"
+chainid: StarknetChainId = StarknetChainId.MAINNET
 max_fee = int(1e16)
 # ethereum contract
 erc20 = 0x049D36570D4E46F48E99674BD3FCC84644DDD6B96F7C741B1562B82F9E004DC7
@@ -48,7 +49,7 @@ async def main():
         version=1,
     )
     pricing_file.close()
-    deployment_pricing = await account.deploy(deploy_pricing_tx)
+    deployment_pricing = await client.deploy(transaction=deploy_pricing_tx, token=token)
     print("deployment txhash:", hex(deployment_pricing.transaction_hash))
     print("pricing contract address:", hex(deployment_pricing.contract_address))
 
