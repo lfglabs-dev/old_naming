@@ -4,7 +4,7 @@ from starkware.starknet.common.syscalls import get_contract_address
 from src.naming.utils import (
     DomainData,
     write_domain_data,
-    write_address_to_domain,
+    _write_address_to_domain,
     hash_domain,
     _domain_data,
     _pricing_contract,

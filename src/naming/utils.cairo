@@ -67,7 +67,8 @@ func write_domain_data{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
     return ();
 }
 
-func write_address_to_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+// can be used for writing only, overwriting needs next felt to be zero
+func _write_address_to_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     domain_len: felt, domain: felt*, address: felt
 ) {
     if (domain_len == 0) {
@@ -76,7 +77,7 @@ func write_address_to_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ran
 
     tempvar new_len = domain_len - 1;
     _address_to_domain.write(address, new_len, domain[new_len]);
-    return write_address_to_domain(new_len, domain, address);
+    return _write_address_to_domain(new_len, domain, address);
 }
 
 func _address_to_domain_util{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(

@@ -1,7 +1,7 @@
 %lang starknet
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from src.naming.registration import assert_is_owner, assert_control_domain, starknetid_contract
-from src.naming.utils import write_domain_data, write_address_to_domain, DomainData
+from src.naming.utils import write_domain_data, DomainData
 
 @external
 func test_assert_is_owner{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {

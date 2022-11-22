@@ -12,7 +12,7 @@ from src.naming.utils import (
     DomainData,
     hash_domain,
     write_domain_data,
-    write_address_to_domain,
+    _write_address_to_domain,
     _admin_address,
     _pricing_contract,
     _domain_data,
@@ -57,7 +57,7 @@ func test_write_domain_data{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, rang
 func test_write_address_to_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     arguments
 ) {
-    write_address_to_domain(4, new ('this', 'is', 'a', 'domain'), 456);
+    _write_address_to_domain(4, new ('this', 'is', 'a', 'domain'), 456);
 
     let (domain_len, domain) = address_to_domain(456);
     assert domain_len = 4;

@@ -17,7 +17,7 @@ from src.naming.utils import (
     _address_to_domain_util,
     _address_to_domain,
     write_domain_data,
-    write_address_to_domain,
+    _write_address_to_domain,
     DomainData,
     _admin_address,
     _pricing_contract,
@@ -172,7 +172,9 @@ func set_address_to_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
     alloc_locals;
     let (caller) = get_caller_address();
     assert_control_domain(domain_len, domain, caller);
-    write_address_to_domain(domain_len, domain, caller);
+    _write_address_to_domain(domain_len, domain, caller);
+    // in case of overwriting
+    _address_to_domain.write(caller, domain_len, 0);
     addr_to_domain_update.emit(caller, domain_len, domain);
     return ();
 }
