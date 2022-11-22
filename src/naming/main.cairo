@@ -176,7 +176,10 @@ func set_address_to_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
 ) {
     alloc_locals;
     let (caller) = get_caller_address();
-    assert_control_domain(domain_len, domain, caller);
+    let (target) = domain_to_address(domain_len, domain);
+    with_attr error_message("You can only point your address to a domain pointing back") {
+        assert target = caller;
+    }
     _write_address_to_domain(domain_len, domain, caller);
     // in case of overwriting
     _address_to_domain.write(caller, domain_len, 0);

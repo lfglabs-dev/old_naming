@@ -280,7 +280,7 @@ func test_set_address_to_domain_fail{
         stop_prank_callable1()
         stop_prank_callable2()
         stop_prank_callable = start_prank(789, context.naming_contract)
-        expect_revert(error_message="You do not have rights on this domain")
+        expect_revert(error_message="You can only point your address to a domain pointing back")
     %}
     Naming.set_address_to_domain(naming_contract, 1, new (th0rgal_string));
     %{
