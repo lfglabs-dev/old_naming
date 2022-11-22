@@ -1,6 +1,7 @@
 %lang starknet
 from src.naming.main import domain_to_address, address_to_domain, domain_to_token_id
-from src.naming.utils import DomainData, _address_to_domain, _domain_data
+from src.naming.utils import DomainData, _address_to_domain, _domain_data, hash_domain
+from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.alloc import alloc
 
@@ -8,6 +9,8 @@ from starkware.cairo.common.alloc import alloc
 func test_address_to_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     arguments
 ) {
+    let (hashed_domain) = hash_domain(3, new ('guthl', 'starkware', 'com'));
+    _domain_data.write(hashed_domain, DomainData(0, 0, 123, 0, 0, 0));
     _address_to_domain.write(123, 0, 'guthl');
     _address_to_domain.write(123, 1, 'starkware');
     _address_to_domain.write(123, 2, 'com');
