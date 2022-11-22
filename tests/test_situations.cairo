@@ -575,26 +575,38 @@ func test_main_domain{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBui
     Naming.buy(naming_contract, token_id, root_domain1, 365, 0, 456);
     Naming.transfer_domain(naming_contract, 2, new (subdomain1, root_domain1), token_id2);
 
-
-
+    Naming.set_domain_to_address(naming_contract, 2, new (subdomain1, root_domain1), 456);
     Naming.set_address_to_domain(naming_contract, 2, new (subdomain1, root_domain1));
     let (domain_len, domain: felt*) = Naming.address_to_domain(naming_contract, 456);
     assert domain_len = 2;
     assert domain[0] = subdomain1;
     assert domain[1] = root_domain1;
 
+    Naming.set_domain_to_address(naming_contract, 1, new (root_domain1), 456);
     Naming.set_address_to_domain(naming_contract, 1, new (root_domain1));
     let (domain_len, domain: felt*) = Naming.address_to_domain(naming_contract, 456);
     assert domain_len = 1;
     assert domain[0] = root_domain1;
 
-
-
+    let token_id3 = 3;
+    Naming.transfer_domain(naming_contract, 1, new (root_domain1), token_id3);
 
     %{
         stop_prank_callable_starknetid()
         stop_prank_callable_naming()
+        stop_prank_callable_starknetid = start_prank(789, context.starknet_id_contract)
+        stop_prank_callable_naming = start_prank(789, context.naming_contract)
         stop_mock()
+    %}
+
+    StarknetId.mint(starknet_id_contract, token_id3);
+    Naming.set_domain_to_address(naming_contract, 1, new (root_domain1), 789);
+    let (domain_len, domain: felt*) = Naming.address_to_domain(naming_contract, 456);
+    assert domain_len = 0;
+
+    %{
+        stop_prank_callable_starknetid()
+        stop_prank_callable_naming()
     %}
 
     return ();

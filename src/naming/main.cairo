@@ -99,7 +99,12 @@ func address_to_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
     alloc_locals;
     let (arr: felt*) = alloc();
     let (arr_len: felt) = _address_to_domain_util(address, arr, 0);
-    return (arr_len, arr);
+    let (found_addr) = domain_to_address(arr_len, arr);
+    if (found_addr == address) {
+        return (arr_len, arr);
+    } else {
+        return (0, arr);
+    }
 }
 
 @view
