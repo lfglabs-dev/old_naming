@@ -57,6 +57,8 @@ func test_write_domain_data{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, rang
 func test_write_address_to_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     arguments
 ) {
+    let (hashed_domain) = hash_domain(4, new ('this', 'is', 'a', 'domain'));
+    _domain_data.write(hashed_domain, DomainData(0, 0, 456, 0, 0, 0));
     _write_address_to_domain(4, new ('this', 'is', 'a', 'domain'), 456);
 
     let (domain_len, domain) = address_to_domain(456);
@@ -146,7 +148,7 @@ func test_set_domain_to_resolver{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*,
     write_domain_data(1, new ('aloha'), domain_data);
     let starknetid_address = 0x0123456;
     starknetid_contract.write(starknetid_address);
- 
+
     %{ stop_mock = mock_call(ids.starknetid_address, "owner_of", [123]) %}
 
     set_domain_to_resolver(1, new ('aloha'), 456);
