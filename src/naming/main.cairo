@@ -35,6 +35,7 @@ from src.naming.registration import (
     domain_to_resolver_update,
     addr_to_domain_update,
     starknet_id_update,
+    domain_transfer,
     reset_subdomains_update,
     booked_domain,
     pay_buy_domain,
@@ -355,8 +356,7 @@ func transfer_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
             next_domain_data.key,
         );
         _domain_data.write(hashed_domain, new_domain_data);
-        starknet_id_update.emit(0, new (), current_domain_data.owner, 0);
-        starknet_id_update.emit(domain_len, domain, target_token_id, current_domain_data.expiry);
+        domain_transfer.emit(domain_len, domain, current_domain_data.owner, target_token_id);
         StarknetId.set_verifier_data(contract, current_domain_data.owner, 'name', 0);
         StarknetId.set_verifier_data(contract, target_token_id, 'name', hashed_domain);
         return ();
@@ -370,8 +370,7 @@ func transfer_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
             current_domain_data.parent_key,
         );
         _domain_data.write(hashed_domain, new_domain_data);
-        starknet_id_update.emit(0, new (), current_domain_data.owner, 0);
-        starknet_id_update.emit(domain_len, domain, target_token_id, current_domain_data.expiry);
+        domain_transfer.emit(domain_len, domain, current_domain_data.owner, target_token_id);
         StarknetId.set_verifier_data(contract, current_domain_data.owner, 'name', 0);
         StarknetId.set_verifier_data(contract, target_token_id, 'name', hashed_domain);
         return ();

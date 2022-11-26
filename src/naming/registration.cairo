@@ -28,6 +28,10 @@ func addr_to_domain_update(address: felt, domain_len: felt, domain: felt*) {
 }
 
 @event
+func domain_transfer(domain_len: felt, domain: felt*, prev_owner: felt, new_owner: felt) {
+}
+
+@event
 func starknet_id_update(domain_len: felt, domain: felt*, owner: felt, expiry: felt) {
 }
 

@@ -1,7 +1,7 @@
 [project]
-protostar-version = "0.7.0"
+protostar-version = "0.8.1"
 lib-path = "lib"
-cairo-path = ["./lib/cairo_contracts/src"]
+cairo-path = ["lib", "./lib/cairo_contracts/src"]
 
 [contracts]
 naming = ["src/naming/main.cairo"]
