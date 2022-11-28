@@ -8,7 +8,7 @@ from starkware.crypto.signature.signature import sign
 argv = sys.argv
 if len(argv) < 2:
     print("[ERROR] Invalid amount of parameters")
-    print("Usage: ./whitelist.py priv_key domain expiry receiver_address")
+    print("Usage: ./whitelist.py priv_key domain expiry")
     quit()
 priv_key = argv[1]
 expiry = argv[2]
@@ -62,8 +62,8 @@ for i in range(len(whitelistedDomains)):
     )
     signed = sign(hashed, int(priv_key))
     whitelist_info = {
-        "domain": whitelistedDomains[i]["domain"],
-        "signature": signed,
+        "domain": str(encoded_domain),
+        "signature": [str(signed[0]), str(signed[1])],
         "expiry": expiry,
     }
     whitelists_data[whitelistedDomains[i]["receiver_address"]].append(whitelist_info)

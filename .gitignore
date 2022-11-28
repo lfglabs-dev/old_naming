@@ -1,5 +1,7 @@
 env
 
+keys.txt
+
 ### Protostar ###
 migrations/*.json
 
