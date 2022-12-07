@@ -49,6 +49,10 @@ from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 func initializer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     starknetid_contract_addr, pricing_contract_addr, admin, whitelisting_key, l1_contract
 ) {
+    // can only be called if there is no admin
+    let (current_admin) = _admin_address.read();
+    assert current_admin = 0;
+    // then if there is no admin, the proxy can initialize the contract
     starknetid_contract.write(starknetid_contract_addr);
     _pricing_contract.write(pricing_contract_addr);
     _admin_address.write(admin);
