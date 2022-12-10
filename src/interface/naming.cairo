@@ -31,7 +31,7 @@ namespace Naming {
     func buy(token_id: felt, domain: felt, days: felt, resolver: felt, address: felt) {
     }
 
-    func renew(token_id: felt, domain: felt, days: felt) {
+    func renew(domain: felt, days: felt) {
     }
 
     func transfer_domain(domain_len: felt, domain: felt*, target_token_id: felt) {
