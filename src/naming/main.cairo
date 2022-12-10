@@ -24,6 +24,7 @@ from src.naming.utils import (
     _whitelisting_key,
     _l1_contract,
     blacklisted_point,
+    compute_new_expiry,
 )
 from src.interface.starknetid import StarknetId
 from src.interface.pricing import Pricing
@@ -306,7 +307,8 @@ func renew{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     // assert_le(domain_data.expiry, current_timestamp);
 
     // Get expiry and price
-    let expiry = domain_data.expiry + 86400 * days;  // 1 day = 86400s
+    let expiry = compute_new_expiry(domain_data.expiry, current_timestamp, days);
+
     with_attr error_message("A domain can't be purchased for more than 25 years") {
         assert_le_felt(expiry, current_timestamp + 86400 * 9125);  // 25*365
     }
