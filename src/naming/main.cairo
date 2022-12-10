@@ -1,6 +1,6 @@
 %lang starknet
 from starkware.cairo.common.uint256 import Uint256
-from starkware.cairo.common.math import assert_nn, assert_le_felt
+from starkware.cairo.common.math import assert_nn, assert_le, assert_le_felt
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.cairo.common.bool import TRUE, FALSE
@@ -299,12 +299,11 @@ func renew{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
 ) {
     alloc_locals;
 
-    // Verify that the domain is not expired
     let (current_timestamp) = get_block_timestamp();
     let (hashed_domain) = hash_domain(1, new (domain));
     let (domain_data: DomainData) = _domain_data.read(hashed_domain);
-    let is_expired = is_le(domain_data.expiry, current_timestamp);
-    assert is_expired = FALSE;
+    // no need to verify the domain is expired
+    // assert_le(domain_data.expiry, current_timestamp);
 
     // Get expiry and price
     let expiry = domain_data.expiry + 86400 * days;  // 1 day = 86400s
