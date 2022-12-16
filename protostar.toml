@@ -5,6 +5,5 @@ cairo-path = ["lib", "./lib/cairo_contracts/src"]
 
 [contracts]
 naming = ["src/naming/main.cairo"]
-resolver = ["src/ens/starknet_resolver.cairo"]
 pricing = ["src/pricing/main.cairo"]
 proxy = ["lib/cairo_contracts/src/openzeppelin/upgrades/presets/Proxy.cairo"]
