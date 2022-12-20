@@ -75,7 +75,7 @@ func domain_to_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
         let (hashed_domain) = hash_domain(domain_len, domain);
         let (domain_data) = _domain_data.read(hashed_domain);
         if (domain_data.address == FALSE) {
-            return (address=0,);
+            return (address=0);
         } else {
             return (domain_data.address,);
         }
@@ -439,8 +439,7 @@ func set_domain_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
         current_domain_data.parent_key,
     );
     _domain_data.write(hashed_domain, new_domain_data);
-    starknet_id_update.emit(0, new (), current_domain_data.owner, 0);
-    starknet_id_update.emit(domain_len, domain, token_id, current_domain_data.expiry);
+    domain_transfer.emit(domain_len, domain, current_domain_data.owner, token_id);
     let (contract) = starknetid_contract.read();
     StarknetId.set_verifier_data(contract, current_domain_data.owner, 'name', 0);
     StarknetId.set_verifier_data(contract, token_id, 'name', hashed_domain);
