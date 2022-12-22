@@ -74,7 +74,7 @@ func domain_to_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
         let (hashed_domain) = hash_domain(domain_len, domain);
         let (domain_data) = _domain_data.read(hashed_domain);
         if (domain_data.address == FALSE) {
-            return (address=0,);
+            return (address=0);
         } else {
             return (domain_data.address,);
         }
@@ -116,16 +116,35 @@ func address_to_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 func domain_to_token_id{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     domain_len: felt, domain: felt*
 ) -> (owner: felt) {
+    alloc_locals;
     let (hashed_domain) = hash_domain(domain_len, domain);
     let (domain_data) = _domain_data.read(hashed_domain);
     let owner = domain_data.owner;
 
+    // if no one directly owns the domain
     if (owner == 0) {
+        // if the domain is empty, no one owns it
         if (domain_len == 0) {
             return (FALSE,);
         }
+        // check if the parent domain is owned
         return domain_to_token_id(domain_len - 1, domain + 1);
     }
+
+    // if someone owns the domain but is a subdomain
+    let is_subdomain = is_le(1, domain_len);
+    if (is_subdomain == TRUE) {
+        let (parent_domain_hash) = hash_domain(domain_len - 1, domain + 1);
+        let (parent_domain_data) = _domain_data.read(parent_domain_hash);
+        // if someone owns the domain, check if the key is correct
+        if (domain_data.parent_key == parent_domain_data.key) {
+            return (owner,);
+        } else {
+            return (FALSE,);
+        }
+    }
+
+    // if someone owns the domain and it is not a subdomain
     return (owner,);
 }
 
