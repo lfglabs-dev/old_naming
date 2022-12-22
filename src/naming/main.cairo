@@ -24,6 +24,7 @@ from src.naming.utils import (
     _whitelisting_key,
     _l1_contract,
     blacklisted_point,
+    compute_new_expiry,
 )
 from src.interface.starknetid import StarknetId
 from src.interface.pricing import Pricing
@@ -74,7 +75,7 @@ func domain_to_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
         let (hashed_domain) = hash_domain(domain_len, domain);
         let (domain_data) = _domain_data.read(hashed_domain);
         if (domain_data.address == FALSE) {
-            return (address=0,);
+            return (address=0);
         } else {
             return (domain_data.address,);
         }
@@ -209,7 +210,6 @@ func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     token_id: felt, domain: felt, days: felt, resolver: felt, address: felt
 ) {
     alloc_locals;
-
     // Verify that the starknet.id doesn't already manage a domain
     let (contract_addr) = starknetid_contract.read();
     let (naming_contract) = get_contract_address();
@@ -221,25 +221,21 @@ func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     // Verify that the domain is not registered already or expired
     let (current_timestamp) = get_block_timestamp();
     let (hashed_domain) = hash_domain(1, new (domain));
-
     // stop front running/mev
     let (booking_data: (owner: felt, expiry: felt)) = booked_domain.read(hashed_domain);
     let booked = is_le(current_timestamp, booking_data.expiry);
-
     let (caller) = get_caller_address();
     if (booked == TRUE) {
         with_attr error_message("Someone else booked this domain") {
             assert booking_data.owner = caller;
         }
     }
-
     let (domain_data) = _domain_data.read(hashed_domain);
     let is_expired = is_le(domain_data.expiry, current_timestamp);
 
     if (domain_data.owner != 0) {
         assert is_expired = TRUE;
     }
-
     pay_buy_domain(current_timestamp, days, caller, domain);
     let expiry = current_timestamp + 86400 * days;
     with_attr error_message("A domain can't be purchased for more than 25 years") {
@@ -306,7 +302,8 @@ func renew{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     // assert_le(domain_data.expiry, current_timestamp);
 
     // Get expiry and price
-    let expiry = domain_data.expiry + 86400 * days;  // 1 day = 86400s
+    let expiry = compute_new_expiry(domain_data.expiry, current_timestamp, days);
+
     with_attr error_message("A domain can't be purchased for more than 25 years") {
         assert_le_felt(expiry, current_timestamp + 86400 * 9125);  // 25*365
     }
@@ -442,8 +439,7 @@ func set_domain_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
         current_domain_data.parent_key,
     );
     _domain_data.write(hashed_domain, new_domain_data);
-    starknet_id_update.emit(0, new (), current_domain_data.owner, 0);
-    starknet_id_update.emit(domain_len, domain, token_id, current_domain_data.expiry);
+    domain_transfer.emit(domain_len, domain, current_domain_data.owner, token_id);
     let (contract) = starknetid_contract.read();
     StarknetId.set_verifier_data(contract, current_domain_data.owner, 'name', 0);
     StarknetId.set_verifier_data(contract, token_id, 'name', hashed_domain);

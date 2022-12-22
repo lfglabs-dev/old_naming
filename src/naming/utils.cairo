@@ -3,6 +3,7 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.hash import hash2
+from starkware.cairo.common.math_cmp import is_le
 
 struct DomainData {
     owner: felt,  // a starknet.id
@@ -105,5 +106,17 @@ func domain_to_resolver{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
         return (domain_data.resolver, domain_len - begin_elts, domain + begin_elts);
     } else {
         return domain_to_resolver(domain_len - 1, domain, begin_elts);
+    }
+}
+
+// adds days to current_timestamp if the domain is expired, otherwise to current_expiry
+func compute_new_expiry{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    current_expiry: felt, current_timestamp: felt, days: felt
+) -> felt {
+    let expired = is_le(current_expiry, current_timestamp);
+    if (expired == TRUE) {
+        return current_timestamp + 86400 * days;
+    } else {
+        return current_expiry + 86400 * days;  // 1 day = 86400s
     }
 }

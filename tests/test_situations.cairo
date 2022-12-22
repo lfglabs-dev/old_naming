@@ -74,6 +74,80 @@ func test_simple_buy_fails{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: Ha
 }
 
 @external
+func test_expired_buy{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {
+    alloc_locals;
+    local starknet_id_contract;
+    local naming_contract;
+    %{
+        ids.starknet_id_contract = context.starknet_id_contract
+        ids.naming_contract = context.naming_contract
+        stop_prank_callable_1 = start_prank(456, context.starknet_id_contract)
+        stop_prank_callable_2 = start_prank(456, context.naming_contract)
+        stop_mock = mock_call(123, "transferFrom", [1])
+        warp(1, context.naming_contract)
+    %}
+
+    let token_id = 1;
+    StarknetId.mint(starknet_id_contract, token_id);
+    // th0rgal encoded
+    tempvar th0rgal_string = 28235132438;
+
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456);
+    let (addr) = Naming.domain_to_address(naming_contract, 1, new (th0rgal_string));
+    assert addr = 456;
+    %{
+        stop_prank_callable_1()
+        stop_prank_callable_2()
+        # let's get this domain to expire
+        warp(1 + 86400 * 366, context.naming_contract)
+        stop_prank_callable_1 = start_prank(789, context.starknet_id_contract)
+        stop_prank_callable_2 = start_prank(789, context.naming_contract)
+    %}
+
+    let token_id = 2;
+    StarknetId.mint(starknet_id_contract, token_id);
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 789);
+    %{
+        stop_prank_callable_1()
+        stop_prank_callable_2()
+        stop_mock()
+    %}
+    return ();
+}
+
+
+@external
+func test_expired_renew{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {
+    alloc_locals;
+    local starknet_id_contract;
+    local naming_contract;
+    %{
+        ids.starknet_id_contract = context.starknet_id_contract
+        ids.naming_contract = context.naming_contract
+        stop_prank_callable_1 = start_prank(456, context.starknet_id_contract)
+        stop_prank_callable_2 = start_prank(456, context.naming_contract)
+        stop_mock = mock_call(123, "transferFrom", [1])
+        warp(1, context.naming_contract)
+    %}
+
+    let token_id = 1;
+    StarknetId.mint(starknet_id_contract, token_id);
+    // th0rgal encoded
+    tempvar th0rgal_string = 28235132438;
+
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456);
+    let (addr) = Naming.domain_to_address(naming_contract, 1, new (th0rgal_string));
+    assert addr = 456;
+    Naming.renew(naming_contract, th0rgal_string, 365);
+    %{
+        stop_prank_callable_1()
+        stop_prank_callable_2()
+        stop_mock()
+    %}
+    return ();
+}
+
+@external
 func test_booked_buy{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {
     tempvar starknet_id_contract;
     tempvar naming_contract;
