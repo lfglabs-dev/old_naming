@@ -42,6 +42,7 @@ from src.naming.registration import (
     pay_buy_domain,
     pay_renew_domain,
     mint_domain,
+    assert_empty_starknet_id,
 )
 from src.naming.utils import domain_to_resolver
 from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
@@ -213,13 +214,10 @@ func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     // Verify that the starknet.id doesn't already manage a domain
     let (contract_addr) = starknetid_contract.read();
     let (naming_contract) = get_contract_address();
-    let (data) = StarknetId.get_verifier_data(contract_addr, token_id, 'name', naming_contract);
-    with_attr error_message("This StarknetId already has a domain") {
-        assert data = 0;
-    }
+    let (current_timestamp) = get_block_timestamp();
+    assert_empty_starknet_id(token_id, current_timestamp, naming_contract);
 
     // Verify that the domain is not registered already or expired
-    let (current_timestamp) = get_block_timestamp();
     let (hashed_domain) = hash_domain(1, new (domain));
     // stop front running/mev
     let (booking_data: (owner: felt, expiry: felt)) = booked_domain.read(hashed_domain);
@@ -258,15 +256,11 @@ func buy_from_eth{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
     assert from_address = l1_contract;
 
     // Verify that the starknet.id doesn't already manage a domain
-    let (contract_addr) = starknetid_contract.read();
     let (naming_contract) = get_contract_address();
-    let (data) = StarknetId.get_verifier_data(contract_addr, token_id, 'name', naming_contract);
-    with_attr error_message("This StarknetId already has a domain") {
-        assert data = 0;
-    }
+    let (current_timestamp) = get_block_timestamp();
+    assert_empty_starknet_id(token_id, current_timestamp, naming_contract);
 
     // Verify that the domain is not registered already or expired
-    let (current_timestamp) = get_block_timestamp();
     let (hashed_domain) = hash_domain(1, new (domain));
 
     // stop front running/mev on L2
