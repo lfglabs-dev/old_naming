@@ -241,6 +241,9 @@ func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     with_attr error_message("A domain can't be purchased for more than 25 years") {
         assert_le_felt(expiry, current_timestamp + 86400 * 9125);  // 25*365
     }
+    with_attr error_message("A domain can't be purchased for less than 6 months") {
+        assert_le_felt(6 * 30, days);
+    }
     mint_domain(expiry, resolver, address, hashed_domain, token_id, domain);
     return ();
 }
@@ -285,6 +288,9 @@ func buy_from_eth{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
     with_attr error_message("A domain can't be purchased for more than 25 years") {
         assert_le_felt(expiry, current_timestamp + 86400 * 9125);  // 25*365
     }
+    with_attr error_message("A domain can't be purchased for less than 6 months") {
+        assert_le_felt(6 * 30, days);
+    }
     mint_domain(expiry, resolver, address, hashed_domain, token_id, domain);
     return ();
 }
@@ -306,6 +312,9 @@ func renew{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
 
     with_attr error_message("A domain can't be purchased for more than 25 years") {
         assert_le_felt(expiry, current_timestamp + 86400 * 9125);  // 25*365
+    }
+    with_attr error_message("A domain can't be purchased for less than 6 months") {
+        assert_le_felt(6 * 30, days);
     }
     let data = DomainData(
         domain_data.owner, domain_data.resolver, domain_data.address, expiry, domain_data.key, 0

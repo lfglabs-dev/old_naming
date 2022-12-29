@@ -47,7 +47,9 @@ func test_simple_buy{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuil
 }
 
 @external
-func test_simple_buy_fails{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {
+func test_simple_buy_fails_too_long{
+    syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*
+}() {
     tempvar starknet_id_contract;
     tempvar naming_contract;
     %{
@@ -65,6 +67,35 @@ func test_simple_buy_fails{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: Ha
     let th0rgal_string = 28235132438;
 
     Naming.buy(naming_contract, token_id, th0rgal_string, 36500, 0, 456);
+    %{
+        stop_prank_callable()
+        stop_mock()
+    %}
+
+    return ();
+}
+
+@external
+func test_simple_buy_fails_too_short{
+    syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*
+}() {
+    tempvar starknet_id_contract;
+    tempvar naming_contract;
+    %{
+        ids.starknet_id_contract = context.starknet_id_contract
+        ids.naming_contract = context.naming_contract
+        stop_prank_callable = start_prank(456)
+        stop_mock = mock_call(123, "transferFrom", [1])
+        warp(1, context.naming_contract)
+        expect_revert(error_message="A domain can't be purchased for less than 6 months")
+    %}
+
+    let token_id = 1;
+    StarknetId.mint(starknet_id_contract, token_id);
+    // th0rgal encoded
+    let th0rgal_string = 28235132438;
+
+    Naming.buy(naming_contract, token_id, th0rgal_string, 10, 0, 456);
     %{
         stop_prank_callable()
         stop_mock()
@@ -114,7 +145,6 @@ func test_expired_buy{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBui
     %}
     return ();
 }
-
 
 @external
 func test_expired_renew{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {
@@ -577,7 +607,10 @@ func test_whitelist{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuilt
         5065683439,
         1,
         456,
-        (2796114368656848424401471571964226838027845300256693162318739706208869605847, 2616729108859312328977191098964106910423506378607747406940981178386941952093),
+        (
+            2796114368656848424401471571964226838027845300256693162318739706208869605847,
+            2616729108859312328977191098964106910423506378607747406940981178386941952093,
+        ),
     );
 
     %{ expect_revert("TRANSACTION_FAILED") %}
@@ -618,7 +651,10 @@ func test_end_whitelist{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashB
         5065683439,
         1,
         456,
-        (2796114368656848424401471571964226838027845300256693162318739706208869605847, 2616729108859312328977191098964106910423506378607747406940981178386941952093),
+        (
+            2796114368656848424401471571964226838027845300256693162318739706208869605847,
+            2616729108859312328977191098964106910423506378607747406940981178386941952093,
+        ),
     );
 
     return ();
