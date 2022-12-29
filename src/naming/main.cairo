@@ -21,9 +21,7 @@ from src.naming.utils import (
     DomainData,
     _admin_address,
     _pricing_contract,
-    _whitelisting_key,
     _l1_contract,
-    blacklisted_point,
     compute_new_expiry,
 )
 from src.interface.starknetid import StarknetId
@@ -49,7 +47,7 @@ from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 
 @external
 func initializer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    starknetid_contract_addr, pricing_contract_addr, admin, whitelisting_key, l1_contract
+    starknetid_contract_addr, pricing_contract_addr, admin, l1_contract
 ) {
     // can only be called if there is no admin
     let (current_admin) = _admin_address.read();
@@ -58,7 +56,6 @@ func initializer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     starknetid_contract.write(starknetid_contract_addr);
     _pricing_contract.write(pricing_contract_addr);
     _admin_address.write(admin);
-    _whitelisting_key.write(whitelisting_key);
     _l1_contract.write(l1_contract);
     return ();
 }
@@ -477,50 +474,6 @@ func transfer_balance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
     // Redeem funds
     IERC20.transfer(erc20, caller, amount);
 
-    return ();
-}
-
-@external
-func whitelisted_mint{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, ecdsa_ptr: SignatureBuiltin*
-}(domain, expiry, starknet_id, receiver_address, sig: (felt, felt)) {
-    alloc_locals;
-
-    let (caller) = get_caller_address();
-    let (params_hash) = hash2{hash_ptr=pedersen_ptr}(domain, expiry);
-    let (params_hash) = hash2{hash_ptr=pedersen_ptr}(params_hash, receiver_address);
-
-    let (whitelisting_key) = _whitelisting_key.read();
-    verify_ecdsa_signature(params_hash, whitelisting_key, sig[0], sig[1]);
-
-    let (hashed_domain) = hash_domain(1, new (domain));
-    let (is_blacklisted) = blacklisted_point.read(sig[0]);
-    with_attr error_message("This signature has already been used") {
-        assert is_blacklisted = 0;
-    }
-
-    // blacklisting r should be enough since it depends on the "secure random point" it should never be used again
-    // to anyone willing to improve this check in the future, please be careful with s, as (r, -s) is also a valid signature
-    blacklisted_point.write(sig[0], 1);
-
-    with_attr error_message("Only the receiver can mint this") {
-        assert caller = receiver_address;
-    }
-
-    mint_domain(expiry, 0, receiver_address, hashed_domain, starknet_id, domain);
-
-    return ();
-}
-
-@external
-func end_whitelist{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
-    // Verify that caller is admin
-    let (caller) = get_caller_address();
-    let (admin_address) = _admin_address.read();
-    assert caller = admin_address;
-
-    // Set whitelist key to 0
-    _whitelisting_key.write(0);
     return ();
 }
 

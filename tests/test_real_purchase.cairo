@@ -14,9 +14,8 @@ func __setup__() {
         context.pricing_contract = deploy_contract("./src/pricing/main.cairo", [context.eth_contract]).contract_address
         logic_contract_class_hash = declare("./src/naming/main.cairo").class_hash
         context.naming_contract = deploy_contract("./lib/cairo_contracts/src/openzeppelin/upgrades/presets/Proxy.cairo", [logic_contract_class_hash,
-            get_selector_from_name("initializer"), 5, 
-            context.starknet_id_contract, context.pricing_contract, 456, 0, 0]).contract_address
-
+            get_selector_from_name("initializer"), 4, 
+            context.starknet_id_contract, context.pricing_contract, 456, 0]).contract_address
         context.resolver_contract = deploy_contract("./tests/example_resolver.cairo", []).contract_address
     %}
     return ();
