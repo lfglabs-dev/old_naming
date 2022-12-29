@@ -6,9 +6,7 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.alloc import alloc
 
 @external
-func test_address_to_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    arguments
-) {
+func test_address_to_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
     let (hashed_domain) = hash_domain(3, new ('guthl', 'starkware', 'com'));
     _domain_data.write(hashed_domain, DomainData(0, 0, 123, 0, 0, 0));
     _address_to_domain.write(123, 0, 'guthl');
@@ -23,9 +21,7 @@ func test_address_to_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, rang
 }
 
 @external
-func test_domain_to_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    arguments
-) {
+func test_domain_to_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
     alloc_locals;
 
     let (domain1: felt*) = alloc();
@@ -45,9 +41,7 @@ func test_domain_to_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, rang
 }
 
 @external
-func test_domain_to_token_id{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    arguments
-) {
+func test_domain_to_token_id{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
     alloc_locals;
     let tokenid = 123;
     let domainData_instance = DomainData(owner=tokenid, 0, address='0x..', 1, 1, 0);

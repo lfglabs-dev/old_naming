@@ -36,9 +36,7 @@ func test_hash_domain{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBui
 }
 
 @external
-func test_write_domain_data{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    arguments
-) {
+func test_write_domain_data{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
     // todo: write domain data on naming_contract and starknetid
     let tokenid = 123;
     let data = DomainData(tokenid, 0, 456, 1, 1, 0);
@@ -55,8 +53,7 @@ func test_write_domain_data{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, rang
 
 @external
 func test_write_address_to_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    arguments
-) {
+    ) {
     let (hashed_domain) = hash_domain(4, new ('this', 'is', 'a', 'domain'));
     _domain_data.write(hashed_domain, DomainData(0, 0, 456, 0, 0, 0));
     _write_address_to_domain(4, new ('this', 'is', 'a', 'domain'), 456);
@@ -72,7 +69,7 @@ func test_write_address_to_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*
 }
 
 @external
-func test_buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(arguments) {
+func test_buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
     // Mock starknetID.owner_of
 
     // Test with a not registered domain
@@ -85,7 +82,7 @@ func test_buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(a
 }
 
 @external
-func test_set_admin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(arguments) {
+func test_set_admin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
     %{ stop_prank_callable = start_prank(123) %}
 
     _admin_address.write(123);
@@ -97,9 +94,7 @@ func test_set_admin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
 }
 
 @external
-func test_set_pricing_contract{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    arguments
-) {
+func test_set_pricing_contract{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
     %{ stop_prank_callable = start_prank(123) %}
 
     // test case : admin is caller
@@ -114,9 +109,7 @@ func test_set_pricing_contract{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, r
 }
 
 @external
-func test_set_domain_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    arguments
-) {
+func test_set_domain_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
     tempvar starknet_id_contract;
     %{
         stop_prank_callable = start_prank(123)
@@ -138,8 +131,7 @@ func test_set_domain_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
 
 @external
 func test_set_domain_to_resolver{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    arguments
-) {
+    ) {
     %{ stop_prank_callable = start_prank(123) %}
 
     let owner = 123;
