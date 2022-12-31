@@ -40,7 +40,6 @@ from src.naming.registration import (
     pay_buy_domain,
     pay_renew_domain,
     mint_domain,
-    assert_empty_starknet_id,
 )
 from src.naming.utils import domain_to_resolver
 from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
@@ -208,16 +207,12 @@ func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     token_id: felt, domain: felt, days: felt, resolver: felt, address: felt
 ) {
     alloc_locals;
-    // Verify that the starknet.id doesn't already manage a domain
-    let (contract_addr) = starknetid_contract.read();
-    let (naming_contract) = get_contract_address();
-    let (current_timestamp) = get_block_timestamp();
-    assert_empty_starknet_id(token_id, current_timestamp, naming_contract);
 
     // Verify that the domain is not registered already or expired
     let (hashed_domain) = hash_domain(1, new (domain));
     // stop front running/mev
     let (booking_data: (owner: felt, expiry: felt)) = booked_domain.read(hashed_domain);
+    let (current_timestamp) = get_block_timestamp();
     let booked = is_le(current_timestamp, booking_data.expiry);
     let (caller) = get_caller_address();
     if (booked == TRUE) {
@@ -252,16 +247,12 @@ func buy_from_eth{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
     let (l1_contract) = _l1_contract.read();
     assert from_address = l1_contract;
 
-    // Verify that the starknet.id doesn't already manage a domain
-    let (naming_contract) = get_contract_address();
-    let (current_timestamp) = get_block_timestamp();
-    assert_empty_starknet_id(token_id, current_timestamp, naming_contract);
-
     // Verify that the domain is not registered already or expired
     let (hashed_domain) = hash_domain(1, new (domain));
 
     // stop front running/mev on L2
     let (booking_data: (owner: felt, expiry: felt)) = booked_domain.read(hashed_domain);
+    let (current_timestamp) = get_block_timestamp();
     with_attr error_message("Someone else booked this domain on L2") {
         assert_le_felt(booking_data.expiry, current_timestamp);
     }

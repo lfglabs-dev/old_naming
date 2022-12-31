@@ -105,7 +105,7 @@ func test_simple_buy_fails_too_short{
 }
 
 @external
-func test_simple_buy_fails_non_empty_starknet_id{
+func test_simple_buy_succeed_non_empty_starknet_id{
     syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*
 }() {
     tempvar starknet_id_contract;
@@ -116,7 +116,6 @@ func test_simple_buy_fails_non_empty_starknet_id{
         stop_prank_callable = start_prank(456)
         stop_mock = mock_call(123, "transferFrom", [1])
         warp(1, context.naming_contract)
-        expect_revert(error_message="This StarknetId already has a domain")
     %}
 
     let token_id = 1;
@@ -125,6 +124,7 @@ func test_simple_buy_fails_non_empty_starknet_id{
     let th0rgal_string = 28235132438;
 
     Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456);
+    // overrode previous domain
     Naming.buy(naming_contract, token_id, 12345, 365, 0, 456);
 
     %{

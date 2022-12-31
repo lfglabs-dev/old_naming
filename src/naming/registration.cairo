@@ -104,33 +104,6 @@ func assert_control_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
     return ();
 }
 
-// We might remove it in the future and keep a clientisde check
-func assert_empty_starknet_id{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    starknet_id, current_timestamp, naming_contract
-) {
-    let (contract_addr) = starknetid_contract.read();
-    let (sid_hashed_domain) = StarknetId.get_verifier_data(
-        contract_addr, starknet_id, 'name', naming_contract
-    );
-
-    with_attr error_message("This StarknetId already has a domain") {
-        // if a domain was written, check if it expired
-        if (sid_hashed_domain != 0) {
-            let (data) = _domain_data.read(sid_hashed_domain);
-            assert_le_felt(data.expiry, current_timestamp);
-            // because cairo is hell
-            tempvar syscall_ptr = syscall_ptr;
-            tempvar pedersen_ptr = pedersen_ptr;
-            tempvar range_check_ptr = range_check_ptr;
-        } else {
-            tempvar syscall_ptr = syscall_ptr;
-            tempvar pedersen_ptr = pedersen_ptr;
-            tempvar range_check_ptr = range_check_ptr;
-        }
-    }
-    return ();
-}
-
 func fetch_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     contract_addr, starknet_id
 ) -> (owner: felt) {
