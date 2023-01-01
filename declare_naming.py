@@ -4,7 +4,6 @@ from starknet_py.net.udc_deployer.deployer import Deployer
 from starknet_py.net import AccountClient, KeyPair
 from starknet_py.net.gateway_client import GatewayClient
 import asyncio
-import json
 import sys
 
 argv = sys.argv
@@ -22,10 +21,6 @@ chainid: StarknetChainId = StarknetChainId.TESTNET
 max_fee = int(1e16)
 # deployer_address=0x041A78E741E5AF2FEC34B695679BC6891742439F7AFB8484ECD7766661AD02BF
 deployer = Deployer()
-
-pricing = 0x5F87C55D5CFC227F9D4545F0D416DE2A77AD44C3B84AEEF05445011F3F82F0F
-l1_contract = 0x2A8F4E6A844A7CAA602E77B45651635E81EEF0CE
-starknet_id = 0x783A9097B26EAE0586373B2CE0ED3529DDC44069D1E0FBC4F66D42B69D6850D
 
 
 async def main():
@@ -49,39 +44,8 @@ async def main():
     impl_file.close()
     impl_declaration = await client.declare(transaction=declare_contract_tx)
     impl_contract_class_hash = impl_declaration.class_hash
+    print("declaration tx hash:", hex(impl_declaration.transaction_hash))
     print("implementation class hash:", hex(impl_contract_class_hash))
-
-    proxy_file = open("./build/proxy.json", "r")
-    proxy_content = proxy_file.read()
-
-    declare_contract_tx = await account.sign_declare_transaction(
-        compiled_contract=proxy_content, max_fee=max_fee
-    )
-    proxy_file.close()
-    proxy_declaration = await client.declare(transaction=declare_contract_tx)
-    proxy_contract_class_hash = proxy_declaration.class_hash
-    print("proxy class hash:", hex(proxy_contract_class_hash))
-
-    proxy_json = json.loads(proxy_content)
-    abi = proxy_json["abi"]
-    deploy_call, address = deployer.create_deployment_call(
-        class_hash=proxy_contract_class_hash,
-        abi=abi,
-        calldata={
-            "implementation_hash": impl_contract_class_hash,
-            "selector": get_selector_from_name("initializer"),
-            "calldata": [
-                starknet_id,
-                pricing,
-                admin,
-                l1_contract,
-            ],
-        },
-    )
-
-    resp = await account.execute(deploy_call, max_fee=int(1e16))
-    print("deployment txhash:", hex(resp.transaction_hash))
-    print("proxied contract address:", hex(address))
 
 
 if __name__ == "__main__":

@@ -31,19 +31,11 @@ func _admin_address() -> (admin_address: felt) {
 }
 
 @storage_var
-func _whitelisting_key() -> (whitelisting_key: felt) {
-}
-
-@storage_var
 func _pricing_contract() -> (pricing_contract: felt) {
 }
 
 @storage_var
 func _l1_contract() -> (l1_contract: felt) {
-}
-
-@storage_var
-func blacklisted_point(r) -> (blacklisted: felt) {
 }
 
 func hash_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(

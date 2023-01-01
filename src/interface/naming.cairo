@@ -54,12 +54,6 @@ namespace Naming {
     func transfer_balance(erc20: felt, amount: Uint256) {
     }
 
-    func whitelisted_mint(domain, expiry, starknet_id, receiver_address, sig: (felt, felt)) {
-    }
-
-    func end_whitelist() {
-    }
-
     func set_l1_contract(l1_contract) {
     }
 

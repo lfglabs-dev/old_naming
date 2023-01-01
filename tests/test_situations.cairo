@@ -11,8 +11,8 @@ func __setup__() {
         context.pricing_contract = deploy_contract("./src/pricing/main.cairo", [123]).contract_address
         logic_contract_class_hash = declare("./src/naming/main.cairo").class_hash
         context.naming_contract = deploy_contract("./lib/cairo_contracts/src/openzeppelin/upgrades/presets/Proxy.cairo", [logic_contract_class_hash,
-            get_selector_from_name("initializer"), 5, 
-            context.starknet_id_contract, context.pricing_contract, 456, 1576987121283045618657875225183003300580199140020787494777499595331436496159, 0]).contract_address
+            get_selector_from_name("initializer"), 4, 
+            context.starknet_id_contract, context.pricing_contract, 456, 0]).contract_address
         context.resolver_contract = deploy_contract("./tests/example_resolver.cairo", []).contract_address
     %}
     return ();
@@ -47,7 +47,9 @@ func test_simple_buy{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuil
 }
 
 @external
-func test_simple_buy_fails{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {
+func test_simple_buy_fails_too_long{
+    syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*
+}() {
     tempvar starknet_id_contract;
     tempvar naming_contract;
     %{
@@ -65,6 +67,66 @@ func test_simple_buy_fails{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: Ha
     let th0rgal_string = 28235132438;
 
     Naming.buy(naming_contract, token_id, th0rgal_string, 36500, 0, 456);
+    %{
+        stop_prank_callable()
+        stop_mock()
+    %}
+
+    return ();
+}
+
+@external
+func test_simple_buy_fails_too_short{
+    syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*
+}() {
+    tempvar starknet_id_contract;
+    tempvar naming_contract;
+    %{
+        ids.starknet_id_contract = context.starknet_id_contract
+        ids.naming_contract = context.naming_contract
+        stop_prank_callable = start_prank(456)
+        stop_mock = mock_call(123, "transferFrom", [1])
+        warp(1, context.naming_contract)
+        expect_revert(error_message="A domain can't be purchased for less than 6 months")
+    %}
+
+    let token_id = 1;
+    StarknetId.mint(starknet_id_contract, token_id);
+    // th0rgal encoded
+    let th0rgal_string = 28235132438;
+
+    Naming.buy(naming_contract, token_id, th0rgal_string, 10, 0, 456);
+    %{
+        stop_prank_callable()
+        stop_mock()
+    %}
+
+    return ();
+}
+
+@external
+func test_simple_buy_fails_non_empty_starknet_id{
+    syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*
+}() {
+    tempvar starknet_id_contract;
+    tempvar naming_contract;
+    %{
+        ids.starknet_id_contract = context.starknet_id_contract
+        ids.naming_contract = context.naming_contract
+        stop_prank_callable = start_prank(456)
+        stop_mock = mock_call(123, "transferFrom", [1])
+        warp(1, context.naming_contract)
+        expect_revert(error_message="This StarknetId already has a domain")
+    %}
+
+    let token_id = 1;
+    StarknetId.mint(starknet_id_contract, token_id);
+    // th0rgal encoded
+    let th0rgal_string = 28235132438;
+
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456);
+    Naming.buy(naming_contract, token_id, 12345, 365, 0, 456);
+
     %{
         stop_prank_callable()
         stop_mock()
@@ -114,7 +176,6 @@ func test_expired_buy{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBui
     %}
     return ();
 }
-
 
 @external
 func test_expired_renew{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {
@@ -548,78 +609,6 @@ func test_resolver{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuilti
         stop_prank_callable()
         stop_mock()
     %}
-
-    return ();
-}
-
-@external
-func test_whitelist{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {
-    tempvar starknet_id_contract;
-    tempvar naming_contract;
-    %{
-        ids.starknet_id_contract = context.starknet_id_contract
-        ids.naming_contract = context.naming_contract
-        stop_prank_callable1 = start_prank(456)
-        stop_prank_callable2 = start_prank(456, context.naming_contract)
-        stop_mock = mock_call(123, "transferFrom", [1])
-        warp(1, context.naming_contract)
-    %}
-
-    let token_id = 1;
-    StarknetId.mint(starknet_id_contract, token_id);
-
-    // th0rgal encoded
-    let th0rgal_string = 33133781693;
-
-    Naming.whitelisted_mint(
-        naming_contract,
-        th0rgal_string,
-        5065683439,
-        1,
-        456,
-        (2796114368656848424401471571964226838027845300256693162318739706208869605847, 2616729108859312328977191098964106910423506378607747406940981178386941952093),
-    );
-
-    %{ expect_revert("TRANSACTION_FAILED") %}
-    // Signature (1, 1), is invalid, with respect to the public key 1576987121283045618657875225183003300580199140020787494777499595331436496159, and the message hash 535384430805153015377328413841468779397008938018306822607442420255283071.
-    Naming.whitelisted_mint(naming_contract, th0rgal_string, 5065683439, 1, 456, (1, 1));
-    %{
-        stop_prank_callable1()
-        stop_prank_callable2()
-    %}
-
-    return ();
-}
-
-@external
-func test_end_whitelist{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {
-    tempvar starknet_id_contract;
-    tempvar naming_contract;
-    %{
-        ids.starknet_id_contract = context.starknet_id_contract
-        ids.naming_contract = context.naming_contract
-        stop_prank_callable1 = start_prank(456)
-        stop_prank_callable2 = start_prank(456, context.naming_contract)
-        stop_mock = mock_call(123, "transferFrom", [1])
-        warp(1, context.naming_contract)
-    %}
-
-    let token_id = 1;
-    StarknetId.mint(starknet_id_contract, token_id);
-
-    // th0rgal encoded
-    let th0rgal_string = 33133781693;
-
-    Naming.end_whitelist(naming_contract);
-    %{ expect_revert("TRANSACTION_FAILED") %}
-    Naming.whitelisted_mint(
-        naming_contract,
-        th0rgal_string,
-        5065683439,
-        1,
-        456,
-        (2796114368656848424401471571964226838027845300256693162318739706208869605847, 2616729108859312328977191098964106910423506378607747406940981178386941952093),
-    );
 
     return ();
 }
