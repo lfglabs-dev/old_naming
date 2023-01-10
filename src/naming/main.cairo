@@ -68,11 +68,22 @@ func domain_to_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 ) -> (address: felt) {
     alloc_locals;
     let (resolver: felt, rest_len: felt, rest: felt*) = domain_to_resolver(domain_len, domain, 1);
-
     if (resolver == 0) {
         let (hashed_domain) = hash_domain(domain_len, domain);
         let (domain_data) = _domain_data.read(hashed_domain);
-        return (domain_data.address,);
+        // if it is a root domain
+        if (domain_len == 1) {
+            return (domain_data.address,);
+            // else, check that the parent_key equals parent.key
+        } else {
+            let (hashed_parent_domain) = hash_domain(domain_len - 1, domain + 1);
+            let (parent_domain_data) = _domain_data.read(hashed_parent_domain);
+            if (parent_domain_data.key == domain_data.parent_key) {
+                return (domain_data.address,);
+            } else {
+                return (FALSE,);
+            }
+        }
     } else {
         let (address) = Resolver.domain_to_address(resolver, rest_len, rest);
         return (address=address);
