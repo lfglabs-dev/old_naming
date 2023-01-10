@@ -113,7 +113,7 @@ func assert_empty_starknet_id{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ra
         contract_addr, starknet_id, 'name', naming_contract
     );
 
-    with_attr error_message("This StarknetId already has a domain") {
+    with_attr error_message("This starknet_id already has a domain") {
         // if a domain was written, check if it expired
         if (sid_hashed_domain != 0) {
             let (data) = _domain_data.read(sid_hashed_domain);
