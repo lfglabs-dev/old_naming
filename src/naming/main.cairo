@@ -115,17 +115,32 @@ func address_to_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 func domain_to_token_id{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     domain_len: felt, domain: felt*
 ) -> (owner: felt) {
+    alloc_locals;
     let (hashed_domain) = hash_domain(domain_len, domain);
     let (domain_data) = _domain_data.read(hashed_domain);
     let owner = domain_data.owner;
 
+    // recursive calls
     if (owner == 0) {
         if (domain_len == 0) {
             return (FALSE,);
         }
         return domain_to_token_id(domain_len - 1, domain + 1);
     }
-    return (owner,);
+
+    // if it is a root domain, return the owner
+    if (domain_len == 1) {
+        return (owner,);
+    }
+
+    // else, first check parent_key
+    let (hashed_parent_domain) = hash_domain(domain_len - 1, domain + 1);
+    let (parent_domain_data) = _domain_data.read(hashed_parent_domain);
+    if (parent_domain_data.key == domain_data.parent_key) {
+        return (owner,);
+    } else {
+        return (FALSE,);
+    }
 }
 
 // USER EXTERNAL FUNCTIONS
