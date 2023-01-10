@@ -72,11 +72,7 @@ func domain_to_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
     if (resolver == 0) {
         let (hashed_domain) = hash_domain(domain_len, domain);
         let (domain_data) = _domain_data.read(hashed_domain);
-        if (domain_data.address == FALSE) {
-            return (address=0);
-        } else {
-            return (domain_data.address,);
-        }
+        return (domain_data.address,);
     } else {
         let (address) = Resolver.domain_to_address(resolver, rest_len, rest);
         return (address=address);
