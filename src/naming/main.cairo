@@ -89,11 +89,7 @@ func domain_to_expiry{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
 ) -> (expiry: felt) {
     let (hashed_domain) = hash_domain(domain_len, domain);
     let (domain_data) = _domain_data.read(hashed_domain);
-    if (domain_data.expiry == FALSE) {
-        return (0,);
-    } else {
-        return (domain_data.expiry,);
-    }
+    return (domain_data.expiry,);
 }
 
 @view
