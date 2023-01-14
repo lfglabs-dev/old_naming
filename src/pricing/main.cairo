@@ -27,8 +27,7 @@ func compute_buy_price{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
     let (high, low) = split_felt(domain);
     let number_of_character = get_amount_of_chars(Uint256(low, high));
     let price_per_day_eth = get_price_per_day_eth(number_of_character);
-    let days_to_pay = days;
-    let price = Uint256(days_to_pay * price_per_day_eth, 0);
+    let price = Uint256(days * price_per_day_eth, 0);
     let (erc20_address) = erc20.read();
 
     return (erc20_address, price);
@@ -44,8 +43,7 @@ func compute_renew_price{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_c
     let (high, low) = split_felt(domain);
     let number_of_character = get_amount_of_chars(Uint256(low, high));
     let price_per_day_eth = get_price_per_day_eth(number_of_character);
-    let days_to_pay = days;
-    let price = Uint256(days_to_pay * price_per_day_eth, 0);
+    let price = Uint256(days * price_per_day_eth, 0);
     let (erc20_address) = erc20.read();
 
     return (erc20_address, price);
