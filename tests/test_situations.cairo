@@ -511,31 +511,23 @@ func test_transfer_subdomain{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: 
         stop_mock = mock_call(123, "transferFrom", [1])
         warp(1, context.naming_contract)
     %}
-
     let token_id = 1;
     StarknetId.mint(starknet_id_contract, token_id);
-
     let token_id2 = 2;
     StarknetId.mint(starknet_id_contract, token_id2);
-
-    let token_id3 = 3;
-    StarknetId.mint(starknet_id_contract, token_id3);
-
     // th0rgal encoded
     let th0rgal_string = 28235132438;
-
+    // buying th0rgal.stark and creating th0rgal.th0rgal.stark
     Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456);
     Naming.transfer_domain(naming_contract, 2, new (th0rgal_string, th0rgal_string), token_id2);
-    Naming.buy(naming_contract, token_id3, 987654321, 365, 0, 456);
-
+    // trying to transfer th0rgal.stark to starknet_id containg th0rgal.th0rgal.stark
     %{ expect_revert(error_message="This starknet_id already has a domain") %}
-    Naming.transfer_domain(naming_contract, 1, new (th0rgal_string), token_id3);
+    Naming.transfer_domain(naming_contract, 1, new (th0rgal_string), token_id2);
 
     %{
         stop_prank_callable()
         stop_mock()
     %}
-
     return ();
 }
 
