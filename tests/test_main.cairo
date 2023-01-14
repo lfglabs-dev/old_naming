@@ -69,19 +69,6 @@ func test_write_address_to_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*
 }
 
 @external
-func test_buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
-    // Mock starknetID.owner_of
-
-    // Test with a not registered domain
-
-    // Test with a registered and expired domain
-
-    // Test with a registered and not expired domain
-
-    return ();
-}
-
-@external
 func test_set_admin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
     %{ stop_prank_callable = start_prank(123) %}
 
