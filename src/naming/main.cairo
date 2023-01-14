@@ -68,14 +68,21 @@ func domain_to_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 ) -> (address: felt) {
     alloc_locals;
     let (resolver: felt, rest_len: felt, rest: felt*) = domain_to_resolver(domain_len, domain, 1);
-
     if (resolver == 0) {
         let (hashed_domain) = hash_domain(domain_len, domain);
         let (domain_data) = _domain_data.read(hashed_domain);
-        if (domain_data.address == FALSE) {
-            return (address=0);
-        } else {
+        // if it is a root domain
+        if (domain_len == 1) {
             return (domain_data.address,);
+            // else, check that the parent_key equals parent.key
+        } else {
+            let (hashed_parent_domain) = hash_domain(domain_len - 1, domain + 1);
+            let (parent_domain_data) = _domain_data.read(hashed_parent_domain);
+            if (parent_domain_data.key == domain_data.parent_key) {
+                return (domain_data.address,);
+            } else {
+                return (FALSE,);
+            }
         }
     } else {
         let (address) = Resolver.domain_to_address(resolver, rest_len, rest);
@@ -89,11 +96,7 @@ func domain_to_expiry{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
 ) -> (expiry: felt) {
     let (hashed_domain) = hash_domain(domain_len, domain);
     let (domain_data) = _domain_data.read(hashed_domain);
-    if (domain_data.expiry == FALSE) {
-        return (0,);
-    } else {
-        return (domain_data.expiry,);
-    }
+    return (domain_data.expiry,);
 }
 
 @view
@@ -115,17 +118,32 @@ func address_to_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 func domain_to_token_id{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     domain_len: felt, domain: felt*
 ) -> (owner: felt) {
+    alloc_locals;
     let (hashed_domain) = hash_domain(domain_len, domain);
     let (domain_data) = _domain_data.read(hashed_domain);
     let owner = domain_data.owner;
 
+    // recursive calls
     if (owner == 0) {
         if (domain_len == 0) {
             return (FALSE,);
         }
         return domain_to_token_id(domain_len - 1, domain + 1);
     }
-    return (owner,);
+
+    // if it is a root domain, return the owner
+    if (domain_len == 1) {
+        return (owner,);
+    }
+
+    // else, first check parent_key
+    let (hashed_parent_domain) = hash_domain(domain_len - 1, domain + 1);
+    let (parent_domain_data) = _domain_data.read(hashed_parent_domain);
+    if (parent_domain_data.key == domain_data.parent_key) {
+        return (owner,);
+    } else {
+        return (FALSE,);
+    }
 }
 
 // USER EXTERNAL FUNCTIONS
@@ -337,13 +355,10 @@ func transfer_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
     let (current_domain_data) = _domain_data.read(hashed_domain);
     let (contract) = starknetid_contract.read();
     let (naming_contract) = get_contract_address();
-    let (data: felt) = StarknetId.get_verifier_data(
-        contract, target_token_id, 'name', naming_contract
-    );
     // ensure target doesn't already have a domain
-    with_attr error_message("Target token_id already has a domain") {
-        assert data = 0;
-    }
+    let (current_timestamp) = get_block_timestamp();
+    assert_empty_starknet_id(target_token_id, current_timestamp, naming_contract);
+
     if (current_domain_data.parent_key == 0) {
         let (hashed_parent_domain) = hash_domain(domain_len - 1, domain + 1);
         let (next_domain_data) = _domain_data.read(hashed_parent_domain);

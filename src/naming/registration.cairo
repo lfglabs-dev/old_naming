@@ -113,15 +113,22 @@ func assert_empty_starknet_id{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ra
         contract_addr, starknet_id, 'name', naming_contract
     );
 
-    with_attr error_message("This StarknetId already has a domain") {
+    with_attr error_message("This starknet_id already has a domain") {
         // if a domain was written, check if it expired
         if (sid_hashed_domain != 0) {
             let (data) = _domain_data.read(sid_hashed_domain);
-            assert_le_felt(data.expiry, current_timestamp);
-            // because cairo is hell
-            tempvar syscall_ptr = syscall_ptr;
-            tempvar pedersen_ptr = pedersen_ptr;
-            tempvar range_check_ptr = range_check_ptr;
+            if (data.expiry != 0) {
+                assert_le_felt(data.expiry, current_timestamp);
+                // because cairo is hell
+                tempvar syscall_ptr = syscall_ptr;
+                tempvar pedersen_ptr = pedersen_ptr;
+                tempvar range_check_ptr = range_check_ptr;
+            } else {
+                assert 1 = 0;
+                tempvar syscall_ptr = syscall_ptr;
+                tempvar pedersen_ptr = pedersen_ptr;
+                tempvar range_check_ptr = range_check_ptr;
+            }
         } else {
             tempvar syscall_ptr = syscall_ptr;
             tempvar pedersen_ptr = pedersen_ptr;
