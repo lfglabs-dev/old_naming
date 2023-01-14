@@ -27,7 +27,7 @@ func compute_buy_price{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
     let (high, low) = split_felt(domain);
     let number_of_character = get_amount_of_chars(Uint256(low, high));
     let price_per_day_eth = get_price_per_day_eth(number_of_character);
-    let days_to_pay = get_days_to_pay(days);
+    let days_to_pay = days;
     let price = Uint256(days_to_pay * price_per_day_eth, 0);
     let (erc20_address) = erc20.read();
 
@@ -44,7 +44,7 @@ func compute_renew_price{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_c
     let (high, low) = split_felt(domain);
     let number_of_character = get_amount_of_chars(Uint256(low, high));
     let price_per_day_eth = get_price_per_day_eth(number_of_character);
-    let days_to_pay = get_days_to_pay(days);
+    let days_to_pay = days;
     let price = Uint256(days_to_pay * price_per_day_eth, 0);
     let (erc20_address) = erc20.read();
 
@@ -92,20 +92,21 @@ func get_price_per_day_eth{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
     return (24657534246575);
 }
 
-func get_days_to_pay{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    days
-) -> felt {
-    let is_longer_five_years = is_le(1824, days);
+// func get_days_to_pay{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+//     days
+// ) -> felt {
+//     PROMOTION FOR RENEWAL FEATURE
+//     let is_longer_five_years = is_le(1824, days);
 
-    if (is_longer_five_years == TRUE) {
-        return (days - 730);
-    }
+//     if (is_longer_five_years == TRUE) {
+//         return (days - 730);
+//     }
 
-    let is_longer_three_years = is_le(1094, days);
+//     let is_longer_three_years = is_le(1094, days);
 
-    if (is_longer_three_years == TRUE) {
-        return (days - 365);
-    }
+//     if (is_longer_three_years == TRUE) {
+//         return (days - 365);
+//     }
 
-    return (days);
-}
+//     return (days);
+// }
