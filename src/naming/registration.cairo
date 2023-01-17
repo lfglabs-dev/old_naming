@@ -17,6 +17,7 @@ from src.naming.utils import (
     _pricing_contract,
 )
 from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
+from src.naming.discounts import compute_discount
 
 @event
 func domain_to_addr_update(domain_len: felt, domain: felt*, address: felt) {
@@ -57,6 +58,18 @@ func pay_buy_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
     let (erc20, price) = Pricing.compute_buy_price(pricing_contract, domain, days);
     let (naming_contract) = get_contract_address();
     IERC20.transferFrom(erc20, caller, naming_contract, price);
+    return ();
+}
+
+func pay_buy_domain_discount{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    current_timestamp, days, caller, domain, discount_amount
+) -> () {
+    alloc_locals;
+    let (pricing_contract) = _pricing_contract.read();
+    let (erc20, price) = Pricing.compute_buy_price(pricing_contract, domain, days);
+    let (new_price) = compute_discount(price, discount_amount);
+    let (naming_contract) = get_contract_address();
+    IERC20.transferFrom(erc20, caller, naming_contract, new_price);
     return ();
 }
 

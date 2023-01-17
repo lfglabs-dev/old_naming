@@ -1,6 +1,6 @@
 %lang starknet
 from starkware.cairo.common.uint256 import Uint256
-from starkware.cairo.common.math import assert_nn, assert_le, assert_le_felt
+from starkware.cairo.common.math import assert_nn, assert_le, assert_le_felt, split_felt
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.cairo.common.bool import TRUE, FALSE
@@ -13,6 +13,7 @@ from cairo_contracts.src.openzeppelin.upgrades.library import Proxy
 from src.interface.starknetid import StarknetId
 from src.interface.pricing import Pricing
 from src.interface.resolver import Resolver
+from src.naming.discounts import Discount, discounts
 from src.naming.registration import (
     domain_to_addr_update,
     domain_to_resolver_update,
@@ -23,6 +24,7 @@ from src.naming.registration import (
     starknetid_contract,
     booked_domain,
     pay_buy_domain,
+    pay_buy_domain_discount,
     pay_renew_domain,
     mint_domain,
     assert_control_domain,
@@ -42,6 +44,7 @@ from src.naming.utils import (
     _pricing_contract,
     _l1_contract,
     compute_new_expiry,
+    get_amount_of_chars,
 )
 from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 
@@ -225,7 +228,9 @@ func book_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     token_id: felt, domain: felt, days: felt, resolver: felt, address: felt
 ) {
-    let (hashed_domain, current_timestamp, expiry) = assert_purchase_is_possible(token_id, domain, days);
+    let (hashed_domain, current_timestamp, expiry) = assert_purchase_is_possible(
+        token_id, domain, days
+    );
 
     // stop front running/mev
     let (booking_data: (owner: felt, expiry: felt)) = booked_domain.read(hashed_domain);
@@ -242,11 +247,54 @@ func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     return ();
 }
 
+@external
+func buy_discounted{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    token_id: felt, domain: felt, days: felt, resolver: felt, address: felt, discount_id: felt
+) {
+    alloc_locals;
+    let (hashed_domain, current_timestamp, expiry) = assert_purchase_is_possible(
+        token_id, domain, days
+    );
+
+    // stop front running/mev
+    let (booking_data: (owner: felt, expiry: felt)) = booked_domain.read(hashed_domain);
+    let booked = is_le(current_timestamp, booking_data.expiry);
+    let (caller) = get_caller_address();
+    if (booked == TRUE) {
+        with_attr error_message("Someone else booked this domain") {
+            assert booking_data.owner = caller;
+        }
+    }
+
+    // handle discount verification
+    let (discount) = discounts.read(discount_id);
+
+    // assert domain_len_min <= domain length <= domain_len_max
+    let (high, low) = split_felt(domain);
+    let number_of_character = get_amount_of_chars(Uint256(low, high));
+    assert_le(discount.domain_len_range[0], number_of_character);
+    assert_le(number_of_character, discount.domain_len_range[1]);
+
+    // assert days_min <= days <= days_max
+    assert_le(discount.days_range[0], days);
+    assert_le(days, discount.days_range[1]);
+
+    // assert timestamp_min <= current_timestamp <= timestamp_max
+    assert_le(discount.timestamp_range[0], current_timestamp);
+    assert_le(current_timestamp, discount.timestamp_range[1]);
+
+    pay_buy_domain_discount(current_timestamp, days, caller, domain, discount.amount);
+    mint_domain(expiry, resolver, address, hashed_domain, token_id, domain);
+    return ();
+}
+
 @l1_handler
 func buy_from_eth{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     from_address: felt, token_id: felt, domain: felt, days: felt, resolver: felt, address: felt
 ) {
-    let (hashed_domain, current_timestamp, expiry) = assert_purchase_is_possible(token_id, domain, days);
+    let (hashed_domain, current_timestamp, expiry) = assert_purchase_is_possible(
+        token_id, domain, days
+    );
 
     // stop front running/mev on L2
     let (booking_data: (owner: felt, expiry: felt)) = booked_domain.read(hashed_domain);
@@ -449,6 +497,28 @@ func transfer_balance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
     // Redeem funds
     IERC20.transfer(erc20, caller, amount);
 
+    return ();
+}
+
+@external
+func write_discount{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    discount_id: felt, discount: Discount
+) {
+    // Verify that caller is admin
+    let (caller) = get_caller_address();
+    let (admin_address) = _admin_address.read();
+    assert caller = admin_address;
+
+    // Even though admin should be trusted, mistakes happen
+    // make sure ranges are valid
+    assert_le(discount.domain_len_range[0], discount.domain_len_range[1]);
+    assert_le(discount.days_range[0], discount.days_range[1]);
+    assert_le(discount.timestamp_range[0], discount.timestamp_range[1]);
+    // discount is in multiple of 5%, can't exceed 50%
+    assert_le(discount.amount, 10);
+
+    // Write discount (can be used to update a discount by reusing the same id)
+    discounts.write(discount_id, discount);
     return ();
 }
 

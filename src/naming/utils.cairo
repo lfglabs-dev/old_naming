@@ -4,6 +4,7 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.hash import hash2
 from starkware.cairo.common.math_cmp import is_le
+from starkware.cairo.common.uint256 import Uint256, uint256_unsigned_div_rem
 
 struct DomainData {
     owner: felt,  // a starknet.id
@@ -111,4 +112,23 @@ func compute_new_expiry{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
     } else {
         return current_expiry + 86400 * days;  // 1 day = 86400s
     }
+}
+
+func get_amount_of_chars{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    domain: Uint256
+) -> felt {
+    alloc_locals;
+    if (domain.low == 0 and domain.high == 0) {
+        return (0);
+    }
+    // 38 = simple_alphabet_size
+    let (local p, q) = uint256_unsigned_div_rem(domain, Uint256(38, 0));
+    if (q.high == 0 and q.low == 37) {
+        // 3 = complex_alphabet_size
+        let (shifted_p, _) = uint256_unsigned_div_rem(p, Uint256(2, 0));
+        let next = get_amount_of_chars(shifted_p);
+        return 1 + next;
+    }
+    let next = get_amount_of_chars(p);
+    return 1 + next;
 }
