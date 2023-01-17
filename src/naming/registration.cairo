@@ -2,6 +2,12 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.starknet.common.syscalls import get_contract_address
 from starkware.cairo.common.math import assert_le_felt
+from starkware.cairo.common.math_cmp import is_le
+from starkware.cairo.common.bool import TRUE, FALSE
+from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp
+from starkware.cairo.common.math import assert_nn, assert_le
+from src.interface.starknetid import StarknetId
+from src.interface.pricing import Pricing
 from src.naming.utils import (
     DomainData,
     write_domain_data,
@@ -10,10 +16,6 @@ from src.naming.utils import (
     _domain_data,
     _pricing_contract,
 )
-from src.interface.pricing import Pricing
-from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp
-from starkware.cairo.common.math import assert_nn, assert_le
-from src.interface.starknetid import StarknetId
 from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 
 @event
@@ -80,6 +82,36 @@ func mint_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     StarknetId.set_verifier_data(contract, token_id, 'name', hashed_domain);
 
     return ();
+}
+
+func assert_purchase_is_possible{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    token_id, domain, days
+) -> (hashed_domain: felt, current_timestamp: felt, expiry: felt) {
+    alloc_locals;
+    // Verify that the starknet.id doesn't already manage a domain
+    let (naming_contract) = get_contract_address();
+    let (current_timestamp) = get_block_timestamp();
+    assert_empty_starknet_id(token_id, current_timestamp, naming_contract);
+
+    // Verify that the domain is not registered already or expired
+    let (hashed_domain) = hash_domain(1, new (domain));
+    let (domain_data) = _domain_data.read(hashed_domain);
+    let is_expired = is_le(domain_data.expiry, current_timestamp);
+    with_attr error_message("A domain can't be purchases if someone owns it") {
+        if (domain_data.owner != 0) {
+            assert is_expired = TRUE;
+        }
+    }
+
+    // Verify that the expiration is allowed
+    let expiry = current_timestamp + 86400 * days;
+    with_attr error_message("A domain can't be purchased for more than 25 years") {
+        assert_le_felt(expiry, current_timestamp + 86400 * 9125);  // 25*365
+    }
+    with_attr error_message("A domain can't be purchased for less than 6 months") {
+        assert_le_felt(6 * 30, days);
+    }
+    return (hashed_domain, current_timestamp, expiry);
 }
 
 func assert_control_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
