@@ -269,19 +269,25 @@ func buy_discounted{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
     // handle discount verification
     let (discount) = discounts.read(discount_id);
 
-    // assert domain_len_min <= domain length <= domain_len_max
-    let (high, low) = split_felt(domain);
-    let number_of_character = get_amount_of_chars(Uint256(low, high));
-    assert_le(discount.domain_len_range[0], number_of_character);
-    assert_le(number_of_character, discount.domain_len_range[1]);
+    with_attr error_message("Invalid discount. Domain length is out of range") {
+        // assert domain_len_min <= domain length <= domain_len_max
+        let (high, low) = split_felt(domain);
+        let number_of_character = get_amount_of_chars(Uint256(low, high));
+        assert_le(discount.domain_len_range[0], number_of_character);
+        assert_le(number_of_character, discount.domain_len_range[1]);
+    }
 
-    // assert days_min <= days <= days_max
-    assert_le(discount.days_range[0], days);
-    assert_le(days, discount.days_range[1]);
+    with_attr error_message("Invalid discount. Days amount is out of range") {
+        // assert days_min <= days <= days_max
+        assert_le(discount.days_range[0], days);
+        assert_le(days, discount.days_range[1]);
+    }
 
-    // assert timestamp_min <= current_timestamp <= timestamp_max
-    assert_le(discount.timestamp_range[0], current_timestamp);
-    assert_le(current_timestamp, discount.timestamp_range[1]);
+    with_attr error_message("Invalid discount. Timestamp is out of range") {
+        // assert timestamp_min <= current_timestamp <= timestamp_max
+        assert_le(discount.timestamp_range[0], current_timestamp);
+        assert_le(current_timestamp, discount.timestamp_range[1]);
+    }
 
     pay_buy_domain_discount(current_timestamp, days, caller, domain, discount.amount);
     mint_domain(expiry, resolver, address, hashed_domain, token_id, domain);

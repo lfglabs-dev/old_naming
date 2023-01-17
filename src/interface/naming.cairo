@@ -1,5 +1,6 @@
 %lang starknet
 from starkware.cairo.common.uint256 import Uint256
+from src.naming.discounts import Discount
 
 @contract_interface
 namespace Naming {
@@ -31,6 +32,11 @@ namespace Naming {
     func buy(token_id: felt, domain: felt, days: felt, resolver: felt, address: felt) {
     }
 
+    func buy_discounted(
+        token_id: felt, domain: felt, days: felt, resolver: felt, address: felt, discount_id: felt
+    ) {
+    }
+
     func renew(domain: felt, days: felt) {
     }
 
@@ -52,6 +58,9 @@ namespace Naming {
     }
 
     func transfer_balance(erc20: felt, amount: Uint256) {
+    }
+
+    func write_discount(discount_id: felt, discount: Discount) {
     }
 
     func set_l1_contract(l1_contract) {
