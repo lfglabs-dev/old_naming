@@ -137,3 +137,11 @@ func test_set_domain_to_resolver{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*,
 
     return ();
 }
+
+@external
+func test_empty_address_to_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    ) {
+    let (domain_len, domain) = address_to_domain(0);
+    assert domain_len = 0;
+    return ();
+}
