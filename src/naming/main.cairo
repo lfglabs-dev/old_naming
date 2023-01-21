@@ -70,6 +70,9 @@ func domain_to_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
     domain_len: felt, domain: felt*
 ) -> (address: felt) {
     alloc_locals;
+    if (domain_len == 0) {
+        return (address=0);
+    }
     let (resolver: felt, rest_len: felt, rest: felt*) = domain_to_resolver(domain_len, domain, 1);
     if (resolver == 0) {
         let (hashed_domain) = hash_domain(domain_len, domain);
