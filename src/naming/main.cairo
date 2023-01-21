@@ -1,6 +1,6 @@
 %lang starknet
 from starkware.cairo.common.uint256 import Uint256
-from starkware.cairo.common.math import assert_nn, assert_le, assert_le_felt
+from starkware.cairo.common.math import assert_nn, assert_le, assert_le_felt, split_felt
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.cairo.common.bool import TRUE, FALSE
@@ -10,9 +10,30 @@ from starkware.starknet.common.syscalls import get_caller_address, get_block_tim
 from starkware.cairo.common.math_cmp import is_le, is_not_zero
 from starkware.starknet.common.syscalls import get_contract_address
 from cairo_contracts.src.openzeppelin.upgrades.library import Proxy
-
+from src.interface.starknetid import StarknetId
+from src.interface.pricing import Pricing
+from src.interface.resolver import Resolver
+from src.naming.discounts import Discount, discounts
+from src.naming.registration import (
+    domain_to_addr_update,
+    domain_to_resolver_update,
+    addr_to_domain_update,
+    starknet_id_update,
+    reset_subdomains_update,
+    domain_transfer,
+    starknetid_contract,
+    booked_domain,
+    pay_buy_domain,
+    pay_buy_domain_discount,
+    pay_renew_domain,
+    mint_domain,
+    assert_control_domain,
+    assert_purchase_is_possible,
+    assert_empty_starknet_id,
+)
 from src.naming.utils import (
     _domain_data,
+    domain_to_resolver,
     hash_domain,
     _address_to_domain_util,
     _address_to_domain,
@@ -23,26 +44,8 @@ from src.naming.utils import (
     _pricing_contract,
     _l1_contract,
     compute_new_expiry,
+    get_amount_of_chars,
 )
-from src.interface.starknetid import StarknetId
-from src.interface.pricing import Pricing
-from src.interface.resolver import Resolver
-from src.naming.registration import (
-    starknetid_contract,
-    assert_control_domain,
-    domain_to_addr_update,
-    domain_to_resolver_update,
-    addr_to_domain_update,
-    starknet_id_update,
-    domain_transfer,
-    reset_subdomains_update,
-    booked_domain,
-    pay_buy_domain,
-    pay_renew_domain,
-    mint_domain,
-    assert_empty_starknet_id,
-)
-from src.naming.utils import domain_to_resolver
 from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 
 @external
@@ -225,15 +228,10 @@ func book_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     token_id: felt, domain: felt, days: felt, resolver: felt, address: felt
 ) {
-    alloc_locals;
-    // Verify that the starknet.id doesn't already manage a domain
-    let (contract_addr) = starknetid_contract.read();
-    let (naming_contract) = get_contract_address();
-    let (current_timestamp) = get_block_timestamp();
-    assert_empty_starknet_id(token_id, current_timestamp, naming_contract);
+    let (hashed_domain, current_timestamp, expiry) = assert_purchase_is_possible(
+        token_id, domain, days
+    );
 
-    // Verify that the domain is not registered already or expired
-    let (hashed_domain) = hash_domain(1, new (domain));
     // stop front running/mev
     let (booking_data: (owner: felt, expiry: felt)) = booked_domain.read(hashed_domain);
     let booked = is_le(current_timestamp, booking_data.expiry);
@@ -243,20 +241,55 @@ func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
             assert booking_data.owner = caller;
         }
     }
-    let (domain_data) = _domain_data.read(hashed_domain);
-    let is_expired = is_le(domain_data.expiry, current_timestamp);
 
-    if (domain_data.owner != 0) {
-        assert is_expired = TRUE;
-    }
     pay_buy_domain(current_timestamp, days, caller, domain);
-    let expiry = current_timestamp + 86400 * days;
-    with_attr error_message("A domain can't be purchased for more than 25 years") {
-        assert_le_felt(expiry, current_timestamp + 86400 * 9125);  // 25*365
+    mint_domain(expiry, resolver, address, hashed_domain, token_id, domain);
+    return ();
+}
+
+@external
+func buy_discounted{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    token_id: felt, domain: felt, days: felt, resolver: felt, address: felt, discount_id: felt
+) {
+    alloc_locals;
+    let (hashed_domain, current_timestamp, expiry) = assert_purchase_is_possible(
+        token_id, domain, days
+    );
+
+    // stop front running/mev
+    let (booking_data: (owner: felt, expiry: felt)) = booked_domain.read(hashed_domain);
+    let booked = is_le(current_timestamp, booking_data.expiry);
+    let (caller) = get_caller_address();
+    if (booked == TRUE) {
+        with_attr error_message("Someone else booked this domain") {
+            assert booking_data.owner = caller;
+        }
     }
-    with_attr error_message("A domain can't be purchased for less than 6 months") {
-        assert_le_felt(6 * 30, days);
+
+    // handle discount verification
+    let (discount) = discounts.read(discount_id);
+
+    with_attr error_message("Invalid discount. Domain length is out of range") {
+        // assert domain_len_min <= domain length <= domain_len_max
+        let (high, low) = split_felt(domain);
+        let number_of_character = get_amount_of_chars(Uint256(low, high));
+        assert_le(discount.domain_len_range[0], number_of_character);
+        assert_le(number_of_character, discount.domain_len_range[1]);
     }
+
+    with_attr error_message("Invalid discount. Days amount is out of range") {
+        // assert days_min <= days <= days_max
+        assert_le(discount.days_range[0], days);
+        assert_le(days, discount.days_range[1]);
+    }
+
+    with_attr error_message("Invalid discount. Timestamp is out of range") {
+        // assert timestamp_min <= current_timestamp <= timestamp_max
+        assert_le(discount.timestamp_range[0], current_timestamp);
+        assert_le(current_timestamp, discount.timestamp_range[1]);
+    }
+
+    pay_buy_domain_discount(current_timestamp, days, caller, domain, discount.amount);
     mint_domain(expiry, resolver, address, hashed_domain, token_id, domain);
     return ();
 }
@@ -265,18 +298,9 @@ func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
 func buy_from_eth{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     from_address: felt, token_id: felt, domain: felt, days: felt, resolver: felt, address: felt
 ) {
-    alloc_locals;
-    // Ensure the caller is the right L1 contract
-    let (l1_contract) = _l1_contract.read();
-    assert from_address = l1_contract;
-
-    // Verify that the starknet.id doesn't already manage a domain
-    let (naming_contract) = get_contract_address();
-    let (current_timestamp) = get_block_timestamp();
-    assert_empty_starknet_id(token_id, current_timestamp, naming_contract);
-
-    // Verify that the domain is not registered already or expired
-    let (hashed_domain) = hash_domain(1, new (domain));
+    let (hashed_domain, current_timestamp, expiry) = assert_purchase_is_possible(
+        token_id, domain, days
+    );
 
     // stop front running/mev on L2
     let (booking_data: (owner: felt, expiry: felt)) = booked_domain.read(hashed_domain);
@@ -284,22 +308,12 @@ func buy_from_eth{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
         assert_le_felt(booking_data.expiry, current_timestamp);
     }
 
-    let (domain_data) = _domain_data.read(hashed_domain);
-    let is_expired = is_le(domain_data.expiry, current_timestamp);
-
-    if (domain_data.owner != 0) {
-        assert is_expired = TRUE;
-    }
+    // Ensure the caller is the right L1 contract
+    let (l1_contract) = _l1_contract.read();
+    assert from_address = l1_contract;
 
     // no need to pay on l2, already paid on l1
     // pay_buy_domain(current_timestamp, days, caller, domain);
-    let expiry = current_timestamp + 86400 * days;
-    with_attr error_message("A domain can't be purchased for more than 25 years") {
-        assert_le_felt(expiry, current_timestamp + 86400 * 9125);  // 25*365
-    }
-    with_attr error_message("A domain can't be purchased for less than 6 months") {
-        assert_le_felt(6 * 30, days);
-    }
     mint_domain(expiry, resolver, address, hashed_domain, token_id, domain);
     return ();
 }
@@ -489,6 +503,28 @@ func transfer_balance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
     // Redeem funds
     IERC20.transfer(erc20, caller, amount);
 
+    return ();
+}
+
+@external
+func write_discount{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    discount_id: felt, discount: Discount
+) {
+    // Verify that caller is admin
+    let (caller) = get_caller_address();
+    let (admin_address) = _admin_address.read();
+    assert caller = admin_address;
+
+    // Even though admin should be trusted, mistakes happen
+    // make sure ranges are valid
+    assert_le(discount.domain_len_range[0], discount.domain_len_range[1]);
+    assert_le(discount.days_range[0], discount.days_range[1]);
+    assert_le(discount.timestamp_range[0], discount.timestamp_range[1]);
+    // discount is in multiple of 5%, can't exceed 50%
+    assert_le(discount.amount, 10);
+
+    // Write discount (can be used to update a discount by reusing the same id)
+    discounts.write(discount_id, discount);
     return ();
 }
 

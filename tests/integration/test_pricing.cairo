@@ -69,23 +69,23 @@ func test_buy_price{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuilt
 
 @external
 func test_get_amount_of_chars{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
-    // ""
+    // Should return 0
     let chars_amount = get_amount_of_chars(Uint256(0, 0));
     assert chars_amount = 0;
 
-    // "toto"
+    // Should return 4 (with the encoded domain "toto")
     let chars_amount = get_amount_of_chars(Uint256(796195, 0));
     assert chars_amount = 4;
 
-    // "aloha"
+    // Should return 4 (with the encoded domain "aloha")
     let chars_amount = get_amount_of_chars(Uint256(77554770, 0));
     assert chars_amount = 5;
 
-    // "chocolate"
+    // Should return 9 (with the encoded domain "chocolate")
     let chars_amount = get_amount_of_chars(Uint256(19565965532212, 0));
     assert chars_amount = 9;
 
-    // "这来abcdefghijklmopqrstuvwyq1234"
+    // Should return 30 (with the encoded domain "这来abcdefghijklmopqrstuvwyq1234")
     let (high, low) = split_felt(801855144733576077820330221438165587969903898313);
     let chars_amount = get_amount_of_chars(Uint256(low, high));
     assert chars_amount = 30;
