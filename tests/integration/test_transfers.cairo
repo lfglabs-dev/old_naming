@@ -111,6 +111,13 @@ func test_transfer_subdomain{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: 
     // buying th0rgal.stark and creating th0rgal.th0rgal.stark
     Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456);
     Naming.transfer_domain(naming_contract, 2, new (th0rgal_string, th0rgal_string), token_id2);
+
+    // should return the starknet_id to which subdomain was transfered
+    let (starknet_id) = Naming.domain_to_token_id(
+        naming_contract, 2, new (th0rgal_string, th0rgal_string)
+    );
+    assert starknet_id = token_id2;
+
     // trying to transfer th0rgal.stark to starknet_id containg th0rgal.th0rgal.stark
     %{ expect_revert(error_message="This starknet_id already has a domain") %}
     Naming.transfer_domain(naming_contract, 1, new (th0rgal_string), token_id2);
