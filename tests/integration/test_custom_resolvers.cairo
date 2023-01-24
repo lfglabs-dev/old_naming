@@ -45,7 +45,7 @@ func test_resolver{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuilti
     let (addr) = Naming.domain_to_address(naming_contract, 1, new (th0rgal_string));
     assert addr = 456;
 
-    let (addr) = Naming.domain_to_address(naming_contract, 2, new (th0rgal_string, 'anything'));
+    let (addr) = Naming.domain_to_address(naming_contract, 2, new ('anything', th0rgal_string));
     assert addr = 789;
 
     %{

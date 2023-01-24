@@ -86,19 +86,19 @@ func _address_to_domain_util{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ran
     }
 }
 
-// begin_index should be 1 since you first want to start with the first elt
+// parent_start_id should be 1 since you first want to start with the first elt
 func domain_to_resolver{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    domain_len: felt, domain: felt*, begin_elts
-) -> (resolver: felt, rest_len: felt, rest: felt*) {
-    if (domain_len == begin_elts) {
-        return (0, 0, new ());
+    domain_len: felt, domain: felt*, parent_start_id: felt
+) -> (resolver: felt, parent_start_id: felt) {
+    if (parent_start_id == domain_len) {
+        return (0, 0);
     }
-    let (hashed_domain) = hash_domain(begin_elts, domain);
+    let (hashed_domain) = hash_domain(domain_len - parent_start_id, domain + parent_start_id);
     let (domain_data) = _domain_data.read(hashed_domain);
     if (domain_data.resolver != 0) {
-        return (domain_data.resolver, domain_len - begin_elts, domain + begin_elts);
+        return (domain_data.resolver, parent_start_id);
     } else {
-        return domain_to_resolver(domain_len - 1, domain, begin_elts);
+        return domain_to_resolver(domain_len, domain, parent_start_id + 1);
     }
 }
 

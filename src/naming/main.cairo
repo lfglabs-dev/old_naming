@@ -73,7 +73,7 @@ func domain_to_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
     if (domain_len == 0) {
         return (address=0);
     }
-    let (resolver: felt, rest_len: felt, rest: felt*) = domain_to_resolver(domain_len, domain, 1);
+    let (resolver: felt, parent_start_id: felt) = domain_to_resolver(domain_len, domain, 1);
     if (resolver == 0) {
         let (hashed_domain) = hash_domain(domain_len, domain);
         let (domain_data) = _domain_data.read(hashed_domain);
@@ -91,7 +91,9 @@ func domain_to_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
             }
         }
     } else {
-        let (address) = Resolver.domain_to_address(resolver, rest_len, rest);
+        let (address) = Resolver.domain_to_address(
+            resolver, domain_len - parent_start_id, domain + parent_start_id
+        );
         return (address=address);
     }
 }
