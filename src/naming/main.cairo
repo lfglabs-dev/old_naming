@@ -92,7 +92,7 @@ func domain_to_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
         }
     } else {
         let (address) = Resolver.domain_to_address(
-            resolver, domain_len - parent_start_id, domain + parent_start_id
+            resolver, domain_len - parent_start_id, domain
         );
         return (address=address);
     }
