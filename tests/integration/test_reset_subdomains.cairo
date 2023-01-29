@@ -38,6 +38,10 @@ func test_reset_subdomains{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: Ha
 
     // should mint a domain and create a subdomain
     Naming.buy(naming_contract, token_id, 'alpha', 365, 0, 456);
+
+    let (data) = Naming.domain_to_data(naming_contract, 1, new ('alpha'));
+    assert data.key = 1;
+
     Naming.transfer_domain(naming_contract, 2, new ('bravo', 'alpha'), token_id2);
 
     // should return the subdomain owner
@@ -46,12 +50,25 @@ func test_reset_subdomains{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: Ha
 
     // should reset the subdomain owner
     Naming.reset_subdomains(naming_contract, 1, new ('alpha'));
+
+    let (data) = Naming.domain_to_data(naming_contract, 1, new ('alpha'));
+    assert data.key = 2;
+
+    Naming.reset_subdomains(naming_contract, 1, new ('alpha'));
+
+    let (data) = Naming.domain_to_data(naming_contract, 1, new ('alpha'));
+    assert data.key = 3;
+
     let (owner) = Naming.domain_to_token_id(naming_contract, 2, new ('bravo', 'alpha'));
     assert owner = 0;
 
     let token_id3 = 3;
     StarknetId.mint(starknet_id_contract, token_id3);
     Naming.transfer_domain(naming_contract, 2, new ('charlie', 'alpha'), token_id3);
+
+    let (data) = Naming.domain_to_data(naming_contract, 2, new ('charlie', 'alpha'));
+    assert data.parent_key = 3;
+
     let (owner) = Naming.domain_to_token_id(naming_contract, 2, new ('charlie', 'alpha'));
     assert owner = token_id3;
 

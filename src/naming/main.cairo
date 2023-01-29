@@ -91,9 +91,7 @@ func domain_to_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
             }
         }
     } else {
-        let (address) = Resolver.domain_to_address(
-            resolver, domain_len - parent_start_id, domain
-        );
+        let (address) = Resolver.domain_to_address(resolver, domain_len - parent_start_id, domain);
         return (address=address);
     }
 }
@@ -105,6 +103,14 @@ func domain_to_expiry{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
     let (hashed_domain) = hash_domain(domain_len, domain);
     let (domain_data) = _domain_data.read(hashed_domain);
     return (domain_data.expiry,);
+}
+
+@view
+func domain_to_data{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    domain_len: felt, domain: felt*
+) -> (data: DomainData) {
+    let (hashed_domain) = hash_domain(domain_len, domain);
+    return _domain_data.read(hashed_domain);
 }
 
 @view
