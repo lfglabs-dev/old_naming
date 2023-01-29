@@ -50,6 +50,26 @@ func test_basic_resolver{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: Hash
     let (addr) = Naming.domain_to_address(naming_contract, 2, new ('anything', th0rgal_string));
     assert addr = 789;
 
+    let (found_token_id) = Naming.domain_to_token_id(
+        naming_contract, 2, new ('subdomain', th0rgal_string)
+    );
+    // owner is owner of th0rgal.stark
+    assert found_token_id = 1;
+
+    // should reset the resolver
+    Naming.set_domain_to_resolver(naming_contract, 1, new (th0rgal_string), 0);
+
+    let (addr) = Naming.domain_to_address(naming_contract, 2, new ('anything', th0rgal_string));
+    assert addr = 0;
+
+    let token_id2 = 2;
+    StarknetId.mint(starknet_id_contract, token_id2);
+    Naming.transfer_domain(naming_contract, 2, new ('subdomain', th0rgal_string), token_id2);
+    let (found_token_id) = Naming.domain_to_token_id(
+        naming_contract, 2, new ('subdomain', th0rgal_string)
+    );
+    assert found_token_id = token_id2;
+
     %{
         stop_prank_callable()
         stop_mock()

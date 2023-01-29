@@ -23,6 +23,9 @@ namespace Naming {
     func set_domain_to_address(domain_len: felt, domain: felt*, address: felt) {
     }
 
+    func set_domain_to_resolver(domain_len: felt, domain: felt*, resolver: felt) {
+    }
+
     func set_address_to_domain(domain_len: felt, domain: felt*) {
     }
 
