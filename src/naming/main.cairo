@@ -91,9 +91,7 @@ func domain_to_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
             }
         }
     } else {
-        let (address) = Resolver.domain_to_address(
-            resolver, domain_len - parent_start_id, domain
-        );
+        let (address) = Resolver.domain_to_address(resolver, domain_len - parent_start_id, domain);
         return (address=address);
     }
 }
@@ -105,6 +103,14 @@ func domain_to_expiry{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
     let (hashed_domain) = hash_domain(domain_len, domain);
     let (domain_data) = _domain_data.read(hashed_domain);
     return (domain_data.expiry,);
+}
+
+@view
+func domain_to_data{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    domain_len: felt, domain: felt*
+) -> (data: DomainData) {
+    let (hashed_domain) = hash_domain(domain_len, domain);
+    return _domain_data.read(hashed_domain);
 }
 
 @view
@@ -377,8 +383,22 @@ func transfer_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
     // ensure target doesn't already have a domain
     let (current_timestamp) = get_block_timestamp();
     assert_empty_starknet_id(target_token_id, current_timestamp, naming_contract);
-
-    if (current_domain_data.parent_key == 0) {
+    // no parent_domain check for root domains
+    if (domain_len == 1) {
+        let new_domain_data = DomainData(
+            target_token_id,
+            current_domain_data.resolver,
+            current_domain_data.address,
+            current_domain_data.expiry,
+            current_domain_data.key,
+            current_domain_data.parent_key,
+        );
+        _domain_data.write(hashed_domain, new_domain_data);
+        domain_transfer.emit(domain_len, domain, current_domain_data.owner, target_token_id);
+        StarknetId.set_verifier_data(contract, current_domain_data.owner, 'name', 0);
+        StarknetId.set_verifier_data(contract, target_token_id, 'name', hashed_domain);
+        return ();
+    } else {
         let (hashed_parent_domain) = hash_domain(domain_len - 1, domain + 1);
         let (next_domain_data) = _domain_data.read(hashed_parent_domain);
         let new_domain_data = DomainData(
@@ -388,20 +408,6 @@ func transfer_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
             current_domain_data.expiry,
             current_domain_data.key,
             next_domain_data.key,
-        );
-        _domain_data.write(hashed_domain, new_domain_data);
-        domain_transfer.emit(domain_len, domain, current_domain_data.owner, target_token_id);
-        StarknetId.set_verifier_data(contract, current_domain_data.owner, 'name', 0);
-        StarknetId.set_verifier_data(contract, target_token_id, 'name', hashed_domain);
-        return ();
-    } else {
-        let new_domain_data = DomainData(
-            target_token_id,
-            current_domain_data.resolver,
-            current_domain_data.address,
-            current_domain_data.expiry,
-            current_domain_data.key,
-            current_domain_data.parent_key,
         );
         _domain_data.write(hashed_domain, new_domain_data);
         domain_transfer.emit(domain_len, domain, current_domain_data.owner, target_token_id);

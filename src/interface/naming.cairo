@@ -1,6 +1,7 @@
 %lang starknet
 from starkware.cairo.common.uint256 import Uint256
 from src.naming.discounts import Discount
+from src.naming.utils import DomainData
 
 @contract_interface
 namespace Naming {
@@ -10,6 +11,9 @@ namespace Naming {
     }
 
     func domain_to_expiry(domain_len: felt, domain: felt*) -> (address: felt) {
+    }
+
+    func domain_to_data(domain_len: felt, domain: felt*) -> (data: DomainData) {
     }
 
     func address_to_domain(address: felt) -> (domain_len: felt, domain: felt*) {

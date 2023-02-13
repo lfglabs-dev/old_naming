@@ -38,6 +38,10 @@ func test_reset_subdomains{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: Ha
 
     // should mint a domain and create a subdomain
     Naming.buy(naming_contract, token_id, 'alpha', 365, 0, 456);
+
+    let (data) = Naming.domain_to_data(naming_contract, 1, new ('alpha'));
+    assert data.key = 1;
+
     Naming.transfer_domain(naming_contract, 2, new ('bravo', 'alpha'), token_id2);
 
     // should return the subdomain owner
@@ -46,14 +50,74 @@ func test_reset_subdomains{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: Ha
 
     // should reset the subdomain owner
     Naming.reset_subdomains(naming_contract, 1, new ('alpha'));
+
+    let (data) = Naming.domain_to_data(naming_contract, 1, new ('alpha'));
+    assert data.key = 2;
+
+    Naming.reset_subdomains(naming_contract, 1, new ('alpha'));
+
+    let (data) = Naming.domain_to_data(naming_contract, 1, new ('alpha'));
+    assert data.key = 3;
+
     let (owner) = Naming.domain_to_token_id(naming_contract, 2, new ('bravo', 'alpha'));
     assert owner = 0;
 
     let token_id3 = 3;
     StarknetId.mint(starknet_id_contract, token_id3);
     Naming.transfer_domain(naming_contract, 2, new ('charlie', 'alpha'), token_id3);
+
+    let (data) = Naming.domain_to_data(naming_contract, 2, new ('charlie', 'alpha'));
+    assert data.parent_key = 3;
+
     let (owner) = Naming.domain_to_token_id(naming_contract, 2, new ('charlie', 'alpha'));
     assert owner = token_id3;
+
+    %{
+        stop_prank_callable()
+        stop_mock()
+    %}
+
+    return ();
+}
+
+@external
+func test_reclaim_subdomain{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {
+    alloc_locals;
+    local starknet_id_contract;
+    local naming_contract;
+    %{
+        ids.starknet_id_contract = context.starknet_id_contract
+        ids.naming_contract = context.naming_contract
+        stop_prank_callable = start_prank(456)
+        stop_mock = mock_call(123, "transferFrom", [1])
+        warp(1, context.naming_contract)
+    %}
+
+    let token_id = 1;
+    StarknetId.mint(starknet_id_contract, token_id);
+
+    let token_id2 = 2;
+    StarknetId.mint(starknet_id_contract, token_id2);
+
+    // should mint a domain and create a subdomain
+    Naming.buy(naming_contract, token_id, 'alpha', 365, 0, 456);
+
+    // should mint a subdomain
+    Naming.transfer_domain(naming_contract, 2, new ('bravo', 'alpha'), token_id2);
+    let (token_id) = Naming.domain_to_token_id(naming_contract, 2, new ('bravo', 'alpha'));
+    assert token_id = token_id2;
+
+    // should reset the subdomain owner
+    Naming.reset_subdomains(naming_contract, 1, new ('alpha'));
+    let (token_id) = Naming.domain_to_token_id(naming_contract, 2, new ('bravo', 'alpha'));
+    assert token_id = 0;
+
+    let token_id3 = 3;
+    StarknetId.mint(starknet_id_contract, token_id3);
+    // should mint the subdomain again
+    Naming.transfer_domain(naming_contract, 2, new ('bravo', 'alpha'), token_id3);
+    let (token_id) = Naming.domain_to_token_id(naming_contract, 2, new ('bravo', 'alpha'));
+    assert token_id = token_id3;
 
     %{
         stop_prank_callable()
