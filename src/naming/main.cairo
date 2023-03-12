@@ -531,8 +531,8 @@ func write_discount{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
     assert_le(discount.domain_len_range[0], discount.domain_len_range[1]);
     assert_le(discount.days_range[0], discount.days_range[1]);
     assert_le(discount.timestamp_range[0], discount.timestamp_range[1]);
-    // discount is in multiple of 5%, can't exceed 50%
-    assert_le(discount.amount, 10);
+    // discount is in multiple of 5%, can't exceed 70%
+    assert_le(discount.amount, 14);
 
     // Write discount (can be used to update a discount by reusing the same id)
     discounts.write(discount_id, discount);
