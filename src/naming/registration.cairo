@@ -110,7 +110,7 @@ func assert_purchase_is_possible{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*,
     let (hashed_domain) = hash_domain(1, new (domain));
     let (domain_data) = _domain_data.read(hashed_domain);
     let is_expired = is_le(domain_data.expiry, current_timestamp);
-    with_attr error_message("A domain can't be purchases if someone owns it") {
+    with_attr error_message("A domain can't be purchased if someone owns it") {
         if (domain_data.owner != 0) {
             assert is_expired = TRUE;
         }

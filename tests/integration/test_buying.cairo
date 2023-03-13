@@ -86,7 +86,7 @@ func test_simple_buy_fails_too_short{
         stop_prank_callable = start_prank(456)
         stop_mock = mock_call(123, "transferFrom", [1])
         warp(1, context.naming_contract)
-        expect_revert(error_message="A domain can't be purchased for less than 6 months")
+        expect_revert(error_message="A domain can't be purchased for less than 2 months")
     %}
 
     let token_id = 1;
