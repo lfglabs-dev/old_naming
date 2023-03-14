@@ -76,11 +76,11 @@ func get_price_per_day_eth{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
     }
 
     if (number_of_character == 2) {
-        return (1024657534246575);
+        return (657534246575343);
     }
 
     if (number_of_character == 3) {
-        return (931506849315068);
+        return (410958904109590);
     }
 
     if (number_of_character == 4) {

@@ -29,13 +29,13 @@ func test_buy_price{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuilt
     // Test with "be" / 2 letters and one year
     let (erc20, price) = Pricing.compute_buy_price(pricing_contract, 153, 365);
     assert erc20 = 123;
-    assert price.low = 373999999999999875;
+    assert price.low = 240000000000000195;
     assert price.high = 0;
 
     // Test with "ben" / 3 letters and one year
     let (erc20, price) = Pricing.compute_buy_price(pricing_contract, 18925, 365);
     assert erc20 = 123;
-    assert price.low = 339999999999999820;
+    assert price.low = 150000000000000350;
     assert price.high = 0;
 
     // Test with "benj" / 4 letters and one year
