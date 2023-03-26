@@ -71,7 +71,9 @@ func pay_buy_domain_discount{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ran
     let (erc20, price) = Pricing.compute_buy_price(pricing_contract, domain, days);
     let (new_price) = compute_discount(price, discount_amount);
     let (naming_contract) = get_contract_address();
-    IERC20.transferFrom(erc20, caller, naming_contract, new_price);
+    with_attr error_message("ERC20 transfer impossible: check your ETH balance") {
+        IERC20.transferFrom(erc20, caller, naming_contract, new_price);
+    }
     return ();
 }
 
