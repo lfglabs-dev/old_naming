@@ -305,30 +305,6 @@ func buy_discounted{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
     return ();
 }
 
-@l1_handler
-func buy_from_eth{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    from_address: felt, token_id: felt, domain: felt, days: felt, resolver: felt, address: felt
-) {
-    let (hashed_domain, current_timestamp, expiry) = assert_purchase_is_possible(
-        token_id, domain, days
-    );
-
-    // stop front running/mev on L2
-    let (booking_data: (owner: felt, expiry: felt)) = booked_domain.read(hashed_domain);
-    with_attr error_message("Someone else booked this domain on L2") {
-        assert_le_felt(booking_data.expiry, current_timestamp);
-    }
-
-    // Ensure the caller is the right L1 contract
-    let (l1_contract) = _l1_contract.read();
-    assert from_address = l1_contract;
-
-    // no need to pay on l2, already paid on l1
-    // pay_buy_domain(current_timestamp, days, caller, domain);
-    mint_domain(expiry, resolver, address, hashed_domain, token_id, domain);
-    return ();
-}
-
 @external
 func renew{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     domain: felt, days: felt
