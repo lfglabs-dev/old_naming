@@ -121,13 +121,16 @@ func assert_purchase_is_possible{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*,
     }
 
     // Verify that the expiration is allowed
-    let expiry = current_timestamp + 86400 * days;
+
     with_attr error_message("A domain can't be purchased for more than 25 years") {
-        assert_le_felt(expiry, current_timestamp + 86400 * 9125);  // 25*365
+        assert_le(days, 86400 * 365 * 25);
     }
     with_attr error_message("A domain can't be purchased for less than 2 months") {
-        assert_le_felt(2 * 30, days);
+        assert_le(2 * 30, days);
     }
+
+    let expiry = current_timestamp + 86400 * days;
+
     return (hashed_domain, current_timestamp, expiry);
 }
 
