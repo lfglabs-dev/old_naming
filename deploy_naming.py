@@ -26,6 +26,7 @@ deployer = Deployer()
 pricing = 0x5F87C55D5CFC227F9D4545F0D416DE2A77AD44C3B84AEEF05445011F3F82F0F
 l1_contract = 0x2A8F4E6A844A7CAA602E77B45651635E81EEF0CE
 starknet_id = 0x783A9097B26EAE0586373B2CE0ED3529DDC44069D1E0FBC4F66D42B69D6850D
+referral = 0X0
 
 
 async def main():
@@ -75,6 +76,7 @@ async def main():
                 pricing,
                 admin,
                 l1_contract,
+                referral,
             ],
         },
     )

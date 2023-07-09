@@ -18,6 +18,8 @@ from src.naming.utils import (
 )
 from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 from src.naming.discounts import compute_discount
+from src.interface.referral import Referral
+from src.naming.utils import (_referral_contract)
 
 @event
 func domain_to_addr_update(domain_len: felt, domain: felt*, address: felt) {
@@ -52,14 +54,18 @@ func booked_domain(hashed_domain: felt) -> (booking_data: (owner: felt, expiry: 
 }
 
 func pay_buy_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    current_timestamp, days, caller, domain
+    current_timestamp, days, caller, domain, sponsor
 ) -> () {
+    let useless = 1;
     let (pricing_contract) = _pricing_contract.read();
     let (erc20, price) = Pricing.compute_buy_price(pricing_contract, domain, days);
     let (naming_contract) = get_contract_address();
     with_attr error_message("ERC20 transfer impossible: check your ETH balance") {
         IERC20.transferFrom(erc20, caller, naming_contract, price);
     }
+    let (referral_contract) = _referral_contract.read();
+    Referral.add_commission(referral_contract, price, sponsor);
+
     return ();
 }
 

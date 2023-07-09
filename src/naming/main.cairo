@@ -45,12 +45,13 @@ from src.naming.utils import (
     _l1_contract,
     compute_new_expiry,
     get_amount_of_chars,
+    _referral_contract,
 )
 from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 
 @external
 func initializer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    starknetid_contract_addr, pricing_contract_addr, admin, l1_contract
+    starknetid_contract_addr, pricing_contract_addr, admin, l1_contract, referral_contract
 ) {
     // can only be called if there is no admin
     let (current_admin) = _admin_address.read();
@@ -60,6 +61,8 @@ func initializer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     _pricing_contract.write(pricing_contract_addr);
     _admin_address.write(admin);
     _l1_contract.write(l1_contract);
+    _referral_contract.write(referral_contract);
+
     return ();
 }
 
@@ -237,7 +240,7 @@ func book_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 
 @external
 func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    token_id: felt, domain: felt, days: felt, resolver: felt, address: felt
+    token_id: felt, domain: felt, days: felt, resolver: felt, address: felt, sponsor: felt
 ) {
     let (hashed_domain, current_timestamp, expiry) = assert_purchase_is_possible(
         token_id, domain, days
@@ -253,7 +256,7 @@ func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         }
     }
 
-    pay_buy_domain(current_timestamp, days, caller, domain);
+    pay_buy_domain(current_timestamp, days, caller, domain, sponsor);
     mint_domain(expiry, resolver, address, hashed_domain, token_id, domain);
     return ();
 }

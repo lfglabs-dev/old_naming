@@ -39,6 +39,10 @@ func _pricing_contract() -> (pricing_contract: felt) {
 func _l1_contract() -> (l1_contract: felt) {
 }
 
+@storage_var
+func _referral_contract() -> (referral_contract: felt) {
+}
+
 func hash_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     domain_len: felt, domain: felt*
 ) -> (hashed_domain: felt) {
