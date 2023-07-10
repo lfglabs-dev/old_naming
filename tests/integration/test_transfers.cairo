@@ -39,7 +39,7 @@ func test_transfer_domain{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: Has
     // th0rgal encoded
     let th0rgal_string = 28235132438;
 
-    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456);
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0, new ());
     Naming.transfer_domain(naming_contract, 1, new (th0rgal_string), token_id2);
 
     %{
@@ -73,7 +73,7 @@ func test_transfer_domain_fail{syscall_ptr: felt*, range_check_ptr, pedersen_ptr
     // th0rgal encoded
     let th0rgal_string = 28235132438;
 
-    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456);
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0, new ());
     %{
         stop_prank_callable1()
         stop_prank_callable2()
@@ -109,7 +109,7 @@ func test_transfer_subdomain{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: 
     // th0rgal encoded
     let th0rgal_string = 28235132438;
     // buying th0rgal.stark and creating th0rgal.th0rgal.stark
-    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456);
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0, new ());
     Naming.transfer_domain(naming_contract, 2, new (th0rgal_string, th0rgal_string), token_id2);
 
     // should return the starknet_id to which subdomain was transfered
@@ -153,7 +153,7 @@ func test_transfer_subdomain_fail{syscall_ptr: felt*, range_check_ptr, pedersen_
     // th0rgal encoded
     let th0rgal_string = 28235132438;
 
-    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456);
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0, new ());
     %{
         stop_prank_callable1()
         stop_prank_callable2()
