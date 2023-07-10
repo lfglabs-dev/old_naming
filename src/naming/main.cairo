@@ -51,7 +51,7 @@ from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 
 @external
 func initializer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    starknetid_contract_addr, pricing_contract_addr, admin, l1_contract, referral_contract
+    starknetid_contract_addr, pricing_contract_addr, admin, l1_contract
 ) {
     // can only be called if there is no admin
     let (current_admin) = _admin_address.read();
@@ -61,7 +61,6 @@ func initializer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     _pricing_contract.write(pricing_contract_addr);
     _admin_address.write(admin);
     _l1_contract.write(l1_contract);
-    _referral_contract.write(referral_contract);
 
     return ();
 }
@@ -240,8 +239,9 @@ func book_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 
 @external
 func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    token_id: felt, domain: felt, days: felt, resolver: felt, address: felt, sponsor: felt
+    token_id: felt, domain: felt, days: felt, resolver: felt, address: felt, sponsor_len: felt, sponsor: felt*
 ) {
+    alloc_locals;
     let (hashed_domain, current_timestamp, expiry) = assert_purchase_is_possible(
         token_id, domain, days
     );
@@ -256,7 +256,8 @@ func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         }
     }
 
-    pay_buy_domain(current_timestamp, days, caller, domain, sponsor);
+    let (sponsor_addr) = domain_to_address(sponsor_len, sponsor);
+    pay_buy_domain(current_timestamp, days, caller, domain, sponsor_addr);
     mint_domain(expiry, resolver, address, hashed_domain, token_id, domain);
     return ();
 }
@@ -527,6 +528,21 @@ func set_l1_contract{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
 
     // Set l1_contract address
     _l1_contract.write(l1_contract);
+    return ();
+}
+
+@external
+func set_referral_contract{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    address: felt
+) {
+    // Verify that caller is admin
+    let (caller) = get_caller_address();
+    let (admin_address) = _admin_address.read();
+    assert caller = admin_address;
+
+    // Write domain owner
+    _referral_contract.write(address);
+
     return ();
 }
 

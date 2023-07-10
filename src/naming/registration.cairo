@@ -63,8 +63,12 @@ func pay_buy_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
     with_attr error_message("ERC20 transfer impossible: check your ETH balance") {
         IERC20.transferFrom(erc20, caller, naming_contract, price);
     }
-    let (referral_contract) = _referral_contract.read();
-    Referral.add_commission(referral_contract, price, sponsor);
+
+    if (sponsor != 0) {
+        let (referral_contract) = _referral_contract.read();
+        Referral.add_commission(referral_contract, price, sponsor);
+        return ();
+    }
 
     return ();
 }
