@@ -35,7 +35,7 @@ func test_set_domain_to_address{syscall_ptr: felt*, range_check_ptr, pedersen_pt
     // th0rgal encoded
     let th0rgal_string = 28235132438;
 
-    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0, new ());
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0);
     Naming.set_domain_to_address(naming_contract, 1, new (th0rgal_string), 789);
 
     let (addr) = Naming.domain_to_address(naming_contract, 1, new (th0rgal_string));
@@ -70,7 +70,7 @@ func test_set_domain_to_address_fail{
     // th0rgal encoded
     let th0rgal_string = 28235132438;
 
-    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0, new ());
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0);
     %{
         stop_prank_callable1()
         stop_prank_callable2()
@@ -109,7 +109,7 @@ func test_set_address_to_domain{syscall_ptr: felt*, range_check_ptr, pedersen_pt
         stop_prank_callable()
         stop_prank_callable = start_prank(456, context.naming_contract)
     %}
-    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0, new ());
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0);
     Naming.set_address_to_domain(naming_contract, 1, new (th0rgal_string));
     let (domain_len, domain: felt*) = Naming.address_to_domain(naming_contract, 456);
     assert domain_len = 1;
@@ -142,7 +142,7 @@ func test_set_address_to_domain_fail{
     StarknetId.mint(starknet_id_contract, token_id);
     // th0rgal encoded
     let th0rgal_string = 28235132438;
-    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0, new ());
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0);
     %{
         stop_prank_callable1()
         stop_prank_callable2()
@@ -180,7 +180,7 @@ func test_main_domain{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBui
 
     local root_domain1 = 12345;
     local subdomain1 = 6789;
-    Naming.buy(naming_contract, token_id, root_domain1, 365, 0, 456, 0, new ());
+    Naming.buy(naming_contract, token_id, root_domain1, 365, 0, 456, 0);
     Naming.transfer_domain(naming_contract, 2, new (subdomain1, root_domain1), token_id2);
 
     Naming.set_domain_to_address(naming_contract, 2, new (subdomain1, root_domain1), 456);

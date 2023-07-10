@@ -239,7 +239,7 @@ func book_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 
 @external
 func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    token_id: felt, domain: felt, days: felt, resolver: felt, address: felt, sponsor_len: felt, sponsor: felt*
+    token_id: felt, domain: felt, days: felt, resolver: felt, address: felt, sponsor: felt
 ) {
     alloc_locals;
     let (hashed_domain, current_timestamp, expiry) = assert_purchase_is_possible(
@@ -256,8 +256,7 @@ func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         }
     }
 
-    let (sponsor_addr) = domain_to_address(sponsor_len, sponsor);
-    pay_buy_domain(current_timestamp, days, caller, domain, sponsor_addr);
+    pay_buy_domain(current_timestamp, days, caller, domain, sponsor);
     mint_domain(expiry, resolver, address, hashed_domain, token_id, domain);
     return ();
 }

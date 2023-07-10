@@ -46,7 +46,7 @@ func test_simple_buy{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuil
     %{ stop_prank_callable3() %}
     let (remaining: Uint256) = IERC20.allowance(eth_contract, 456, naming_contract);
 
-    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0, new ());
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0);
     let (addr) = Naming.domain_to_address(naming_contract, 1, new (th0rgal_string));
     assert addr = 456;
     %{

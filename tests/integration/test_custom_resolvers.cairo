@@ -42,7 +42,7 @@ func test_basic_resolver{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: Hash
     let th0rgal_string = 28235132438;
 
     Naming.buy(
-        naming_contract, token_id, th0rgal_string, days=365, resolver=basic_resolver, address=456, sponsor_len=0, sponsor=new ()
+        naming_contract, token_id, th0rgal_string, days=365, resolver=basic_resolver, address=456, sponsor=0
     );
     let (addr) = Naming.domain_to_address(naming_contract, 1, new (th0rgal_string));
     assert addr = 456;
@@ -96,7 +96,7 @@ func test_simple_resolver{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: Has
     let token_id = 1;
     StarknetId.mint(starknet_id_contract, token_id);
 
-    Naming.buy(naming_contract, token_id, 'alpha', days=365, resolver=simple_resolver, address=456, sponsor_len=0, sponsor=new ());
+    Naming.buy(naming_contract, token_id, 'alpha', days=365, resolver=simple_resolver, address=456, sponsor=0);
     let (addr) = Naming.domain_to_address(naming_contract, 1, new ('alpha'));
     assert addr = 456;
 

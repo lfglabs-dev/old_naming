@@ -36,7 +36,7 @@ namespace Naming {
     func book_domain(domain_hash: felt) {
     }
 
-    func buy(token_id: felt, domain: felt, days: felt, resolver: felt, address: felt, sponsor_len: felt, sponsor: felt*) {
+    func buy(token_id: felt, domain: felt, days: felt, resolver: felt, address: felt, sponsor: felt) {
     }
 
     func buy_discounted(
