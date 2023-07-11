@@ -123,7 +123,7 @@ func assert_purchase_is_possible{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*,
     // Verify that the expiration is allowed
 
     with_attr error_message("A domain can't be purchased for more than 25 years") {
-        assert_le(days, 86400 * 365 * 25);
+        assert_le(days, 365 * 25);
     }
     with_attr error_message("A domain can't be purchased for less than 2 months") {
         assert_le(2 * 30, days);
