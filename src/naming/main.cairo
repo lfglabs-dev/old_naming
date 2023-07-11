@@ -426,9 +426,7 @@ func reset_subdomains{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
 @external
 func set_admin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(address: felt) {
     // Verify that caller is admin
-    let (caller) = get_caller_address();
-    let (admin_address) = _admin_address.read();
-    assert caller = admin_address;
+    assert_is_admin();
 
     // Write new admin
     _admin_address.write(address);
@@ -442,9 +440,7 @@ func set_domain_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
 ) {
     alloc_locals;
     // Verify that caller is admin
-    let (caller) = get_caller_address();
-    let (admin_address) = _admin_address.read();
-    assert caller = admin_address;
+    assert_is_admin();
 
     // Write domain owner
     let (hashed_domain) = hash_domain(domain_len, domain);
@@ -471,9 +467,7 @@ func set_pricing_contract{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_
     address: felt
 ) {
     // Verify that caller is admin
-    let (caller) = get_caller_address();
-    let (admin_address) = _admin_address.read();
-    assert caller = admin_address;
+    assert_is_admin();
 
     // Write domain owner
     _pricing_contract.write(address);
@@ -486,11 +480,10 @@ func transfer_balance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
     erc20: felt, amount: Uint256
 ) {
     // Verify that caller is admin
-    let (caller) = get_caller_address();
-    let (admin_address) = _admin_address.read();
-    assert caller = admin_address;
+    assert_is_admin();
 
     // Redeem funds
+    let (caller) = get_caller_address();
     IERC20.transfer(erc20, caller, amount);
 
     return ();
@@ -501,9 +494,7 @@ func write_discount{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
     discount_id: felt, discount: Discount
 ) {
     // Verify that caller is admin
-    let (caller) = get_caller_address();
-    let (admin_address) = _admin_address.read();
-    assert caller = admin_address;
+    assert_is_admin();
 
     // Even though admin should be trusted, mistakes happen
     // make sure ranges are valid
@@ -521,9 +512,7 @@ func write_discount{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
 @external
 func set_l1_contract{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(l1_contract) {
     // Verify that caller is admin
-    let (caller) = get_caller_address();
-    let (admin_address) = _admin_address.read();
-    assert caller = admin_address;
+    assert_is_admin();
 
     // Set l1_contract address
     _l1_contract.write(l1_contract);
@@ -535,13 +524,19 @@ func set_referral_contract{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
     address: felt
 ) {
     // Verify that caller is admin
-    let (caller) = get_caller_address();
-    let (admin_address) = _admin_address.read();
-    assert caller = admin_address;
+    assert_is_admin();
 
     // Write domain owner
     _referral_contract.write(address);
 
+    return ();
+}
+
+func assert_is_admin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+    // Verify that caller is admin
+    let (caller) = get_caller_address();
+    let (admin_address) = _admin_address.read();
+    assert caller = admin_address;
     return ();
 }
 
