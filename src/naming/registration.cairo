@@ -56,7 +56,6 @@ func booked_domain(hashed_domain: felt) -> (booking_data: (owner: felt, expiry: 
 func pay_buy_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     current_timestamp, days, caller, domain, sponsor
 ) -> () {
-    let useless = 1;
     let (pricing_contract) = _pricing_contract.read();
     let (erc20, price) = Pricing.compute_buy_price(pricing_contract, domain, days);
     let (naming_contract) = get_contract_address();
