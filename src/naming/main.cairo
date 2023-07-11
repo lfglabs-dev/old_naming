@@ -548,9 +548,7 @@ func upgrade{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     new_implementation: felt
 ) {
     // Verify that caller is admin
-    let (caller) = get_caller_address();
-    let (admin_address) = _admin_address.read();
-    assert caller = admin_address;
+    assert_is_admin();
 
     // Set contract implementation
     Proxy._set_implementation_hash(new_implementation);
