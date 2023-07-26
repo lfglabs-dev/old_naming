@@ -87,12 +87,19 @@ func pay_buy_domain_discount{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ran
 }
 
 func pay_renew_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    current_timestamp, days, caller, domain
+    current_timestamp, days, caller, domain, sponsor
 ) -> () {
     let (pricing_contract) = _pricing_contract.read();
     let (erc20, price) = Pricing.compute_renew_price(pricing_contract, domain, days);
     let (naming_contract) = get_contract_address();
     IERC20.transferFrom(erc20, caller, naming_contract, price);
+
+    if (sponsor != 0) {
+        let (referral_contract) = _referral_contract.read();
+        Referral.add_commission(referral_contract, price, sponsor);
+        return ();
+    }
+
     return ();
 }
 
