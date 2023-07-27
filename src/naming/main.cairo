@@ -310,7 +310,7 @@ func buy_discounted{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
 
 @external
 func renew{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    domain: felt, days: felt
+    domain: felt, days: felt, sponsor: felt
 ) {
     alloc_locals;
 
@@ -337,7 +337,7 @@ func renew{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     let (caller) = get_caller_address();
 
     // Make the user pay
-    pay_renew_domain(current_timestamp, days, caller, domain);
+    pay_renew_domain(current_timestamp, days, caller, domain, sponsor);
 
     // Write info on starknet.id and write info on storage data
     write_domain_data(1, new (domain), data);
