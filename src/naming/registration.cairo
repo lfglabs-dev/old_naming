@@ -113,7 +113,9 @@ func mint_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     domain_to_addr_update.emit(1, new (domain), target_address);
     let (contract) = starknetid_contract.read();
     StarknetId.set_verifier_data(contract, token_id, 'name', hashed_domain);
-
+    if (resolver != 0) {
+        domain_to_resolver_update.emit(1, new(domain), resolver);
+    }
     return ();
 }
 
