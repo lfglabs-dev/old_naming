@@ -310,7 +310,7 @@ func buy_discounted{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
 
 @external
 func renew{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    domain: felt, days: felt, sponsor: felt
+    domain: felt, days: felt, sponsor: felt, discount_id : felt, metadata : felt
 ) {
     alloc_locals;
 

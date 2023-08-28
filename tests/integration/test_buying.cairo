@@ -202,7 +202,7 @@ func test_expired_renew{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashB
     Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0);
     let (addr) = Naming.domain_to_address(naming_contract, 1, new (th0rgal_string));
     assert addr = 456;
-    Naming.renew(naming_contract, th0rgal_string, 365, 0);
+    Naming.renew(naming_contract, th0rgal_string, 365, 0, 0, 0);
     %{
         stop_prank_callable_1()
         stop_prank_callable_2()
