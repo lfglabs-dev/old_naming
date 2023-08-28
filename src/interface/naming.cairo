@@ -44,7 +44,7 @@ namespace Naming {
     ) {
     }
 
-    func renew(domain: felt, days: felt, sponsor: felt) {
+    func renew(domain: felt, days: felt, sponsor: felt, discount_id : felt, metadata : felt) {
     }
 
     func transfer_domain(domain_len: felt, domain: felt*, target_token_id: felt) {
