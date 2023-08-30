@@ -36,11 +36,11 @@ namespace Naming {
     func book_domain(domain_hash: felt) {
     }
 
-    func buy(token_id: felt, domain: felt, days: felt, resolver: felt, address: felt, sponsor: felt) {
+    func buy(token_id: felt, domain: felt, days: felt, resolver: felt, address: felt, sponsor: felt, metadata : felt) {
     }
 
     func buy_discounted(
-        token_id: felt, domain: felt, days: felt, resolver: felt, address: felt, discount_id: felt
+        token_id: felt, domain: felt, days: felt, resolver: felt, address: felt, discount_id: felt, metadata : felt
     ) {
     }
 

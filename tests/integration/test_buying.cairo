@@ -35,7 +35,7 @@ func test_simple_buy{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuil
     // th0rgal encoded
     let th0rgal_string = 28235132438;
 
-    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0);
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0, 0);
     let (addr) = Naming.domain_to_address(naming_contract, 1, new (th0rgal_string));
     assert addr = 456;
     %{
@@ -67,7 +67,7 @@ func test_simple_buy_fails_too_long{
     // th0rgal encoded
     let th0rgal_string = 28235132438;
 
-    Naming.buy(naming_contract, token_id, th0rgal_string, 36500, 0, 456, 0);
+    Naming.buy(naming_contract, token_id, th0rgal_string, 36500, 0, 456, 0, 0);
     %{
         stop_prank_callable()
         stop_mock()
@@ -97,7 +97,7 @@ func test_simple_buy_fails_too_short{
     // th0rgal encoded
     let th0rgal_string = 28235132438;
 
-    Naming.buy(naming_contract, token_id, th0rgal_string, 10, 0, 456, 0);
+    Naming.buy(naming_contract, token_id, th0rgal_string, 10, 0, 456, 0, 0);
     %{
         stop_prank_callable()
         stop_mock()
@@ -127,8 +127,8 @@ func test_simple_buy_fails_non_empty_starknet_id{
     // th0rgal encoded
     let th0rgal_string = 28235132438;
 
-    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0);
-    Naming.buy(naming_contract, token_id, 12345, 365, 0, 456, 0);
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0, 0);
+    Naming.buy(naming_contract, token_id, 12345, 365, 0, 456, 0, 0);
 
     %{
         stop_prank_callable()
@@ -157,7 +157,7 @@ func test_expired_buy{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBui
     // th0rgal encoded
     tempvar th0rgal_string = 28235132438;
 
-    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0);
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0, 0);
     let (addr) = Naming.domain_to_address(naming_contract, 1, new (th0rgal_string));
     assert addr = 456;
     %{
@@ -171,7 +171,7 @@ func test_expired_buy{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBui
 
     let token_id = 2;
     StarknetId.mint(starknet_id_contract, token_id);
-    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 789, 0);
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 789, 0, 0);
     %{
         stop_prank_callable_1()
         stop_prank_callable_2()
@@ -199,7 +199,7 @@ func test_expired_renew{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashB
     // th0rgal encoded
     tempvar th0rgal_string = 28235132438;
 
-    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0);
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0, 0);
     let (addr) = Naming.domain_to_address(naming_contract, 1, new (th0rgal_string));
     assert addr = 456;
     Naming.renew(naming_contract, th0rgal_string, 365, 0, 0, 0);
@@ -235,7 +235,7 @@ func test_booked_buy{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuil
     %}
 
     Naming.book_domain(naming_contract, hashed_th0rgal_string);
-    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0);
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0, 0);
     let (addr) = Naming.domain_to_address(naming_contract, 1, new (th0rgal_string));
     assert addr = 456;
     %{
@@ -278,7 +278,7 @@ func test_booked_buy_fails{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: Ha
 
     let token_id = 1;
     StarknetId.mint(starknet_id_contract, token_id);
-    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 789, 0);
+    Naming.buy(naming_contract, token_id, th0rgal_string, 365, 0, 789, 0, 0);
     let (addr) = Naming.domain_to_address(naming_contract, 1, new (th0rgal_string));
     assert addr = 789;
     %{
