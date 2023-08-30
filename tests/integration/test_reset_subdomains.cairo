@@ -37,7 +37,7 @@ func test_reset_subdomains{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: Ha
     StarknetId.mint(starknet_id_contract, token_id2);
 
     // should mint a domain and create a subdomain
-    Naming.buy(naming_contract, token_id, 'alpha', 365, 0, 456, 0);
+    Naming.buy(naming_contract, token_id, 'alpha', 365, 0, 456, 0, 0);
 
     let (data) = Naming.domain_to_data(naming_contract, 1, new ('alpha'));
     assert data.key = 1;
@@ -100,7 +100,7 @@ func test_reclaim_subdomain{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: H
     StarknetId.mint(starknet_id_contract, token_id2);
 
     // should mint a domain and create a subdomain
-    Naming.buy(naming_contract, token_id, 'alpha', 365, 0, 456, 0);
+    Naming.buy(naming_contract, token_id, 'alpha', 365, 0, 456, 0, 0);
 
     // should mint a subdomain
     Naming.transfer_domain(naming_contract, 2, new ('bravo', 'alpha'), token_id2);

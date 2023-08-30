@@ -20,6 +20,7 @@ from src.naming.registration import (
     addr_to_domain_update,
     starknet_id_update,
     reset_subdomains_update,
+    SaleMetadata,
     domain_transfer,
     starknetid_contract,
     booked_domain,
@@ -239,7 +240,7 @@ func book_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 
 @external
 func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    token_id: felt, domain: felt, days: felt, resolver: felt, address: felt, sponsor: felt
+    token_id: felt, domain: felt, days: felt, resolver: felt, address: felt, sponsor: felt, metadata : felt
 ) {
     alloc_locals;
     let (hashed_domain, current_timestamp, expiry) = assert_purchase_is_possible(
@@ -257,13 +258,14 @@ func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     }
 
     pay_buy_domain(current_timestamp, days, caller, domain, sponsor);
+    SaleMetadata.emit(domain, metadata);
     mint_domain(expiry, resolver, address, hashed_domain, token_id, domain);
     return ();
 }
 
 @external
 func buy_discounted{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    token_id: felt, domain: felt, days: felt, resolver: felt, address: felt, discount_id: felt
+    token_id: felt, domain: felt, days: felt, resolver: felt, address: felt, discount_id: felt, metadata : felt
 ) {
     alloc_locals;
     let (hashed_domain, current_timestamp, expiry) = assert_purchase_is_possible(
@@ -304,6 +306,7 @@ func buy_discounted{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
     }
 
     pay_buy_domain_discount(current_timestamp, days, caller, domain, discount.amount);
+    SaleMetadata.emit(domain, metadata);
     mint_domain(expiry, resolver, address, hashed_domain, token_id, domain);
     return ();
 }
@@ -342,6 +345,7 @@ func renew{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     // Write info on starknet.id and write info on storage data
     write_domain_data(1, new (domain), data);
 
+    SaleMetadata.emit(domain, metadata);
     starknet_id_update.emit(1, new (domain), domain_data.owner, expiry);
     return ();
 }

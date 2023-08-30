@@ -45,6 +45,10 @@ func starknet_id_update(domain_len: felt, domain: felt*, owner: felt, expiry: fe
 func reset_subdomains_update(domain_len: felt, domain: felt*) {
 }
 
+@event
+func SaleMetadata(domain: felt, metadata: felt) {
+}
+
 @storage_var
 func starknetid_contract() -> (address: felt) {
 }
