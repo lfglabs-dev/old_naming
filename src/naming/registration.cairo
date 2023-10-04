@@ -69,7 +69,8 @@ func pay_buy_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
 
     if (sponsor != 0) {
         let (referral_contract) = _referral_contract.read();
-        Referral.add_commission(referral_contract, price, sponsor);
+        let (sponsored) = get_caller_address();
+        Referral.add_commission(referral_contract, price, sponsor, sponsored);
         return ();
     }
 
@@ -100,7 +101,8 @@ func pay_renew_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
 
     if (sponsor != 0) {
         let (referral_contract) = _referral_contract.read();
-        Referral.add_commission(referral_contract, price, sponsor);
+        let (sponsored) = get_caller_address();
+        Referral.add_commission(referral_contract, price, sponsor, sponsored);
         return ();
     }
 
