@@ -118,7 +118,7 @@ func mint_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     starknet_id_update.emit(1, new (domain), token_id, expiry);
     domain_to_addr_update.emit(1, new (domain), target_address);
     let (contract) = starknetid_contract.read();
-    StarknetId.set_verifier_data(contract, token_id, 'name', hashed_domain);
+    StarknetId.set_verifier_data(contract, token_id, 'name', hashed_domain, 0);
     if (resolver != 0) {
         domain_to_resolver_update.emit(1, new(domain), resolver);
     }
@@ -186,7 +186,7 @@ func assert_empty_starknet_id{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ra
 ) {
     let (contract_addr) = starknetid_contract.read();
     let (sid_hashed_domain) = StarknetId.get_verifier_data(
-        contract_addr, starknet_id, 'name', naming_contract
+        contract_addr, starknet_id, 'name', naming_contract, 0
     );
 
     with_attr error_message("This starknet_id already has a domain") {

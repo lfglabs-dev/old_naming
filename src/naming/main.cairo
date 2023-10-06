@@ -378,8 +378,8 @@ func transfer_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
         );
         _domain_data.write(hashed_domain, new_domain_data);
         domain_transfer.emit(domain_len, domain, current_domain_data.owner, target_token_id);
-        StarknetId.set_verifier_data(contract, current_domain_data.owner, 'name', 0);
-        StarknetId.set_verifier_data(contract, target_token_id, 'name', hashed_domain);
+        StarknetId.set_verifier_data(contract, current_domain_data.owner, 'name', 0, 0);
+        StarknetId.set_verifier_data(contract, target_token_id, 'name', hashed_domain, 0);
         return ();
     } else {
         let (hashed_parent_domain) = hash_domain(domain_len - 1, domain + 1);
@@ -394,8 +394,8 @@ func transfer_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
         );
         _domain_data.write(hashed_domain, new_domain_data);
         domain_transfer.emit(domain_len, domain, current_domain_data.owner, target_token_id);
-        StarknetId.set_verifier_data(contract, current_domain_data.owner, 'name', 0);
-        StarknetId.set_verifier_data(contract, target_token_id, 'name', hashed_domain);
+        StarknetId.set_verifier_data(contract, current_domain_data.owner, 'name', 0, 0);
+        StarknetId.set_verifier_data(contract, target_token_id, 'name', hashed_domain, 0);
         return ();
     }
 }
@@ -460,8 +460,8 @@ func set_domain_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
     _domain_data.write(hashed_domain, new_domain_data);
     domain_transfer.emit(domain_len, domain, current_domain_data.owner, token_id);
     let (contract) = starknetid_contract.read();
-    StarknetId.set_verifier_data(contract, current_domain_data.owner, 'name', 0);
-    StarknetId.set_verifier_data(contract, token_id, 'name', hashed_domain);
+    StarknetId.set_verifier_data(contract, current_domain_data.owner, 'name', 0, 0);
+    StarknetId.set_verifier_data(contract, token_id, 'name', hashed_domain, 0);
 
     return ();
 }
