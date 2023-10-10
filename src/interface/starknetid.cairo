@@ -10,10 +10,10 @@ namespace StarknetId {
     func owner_of(token_id) -> (owner: felt) {
     }
 
-    func get_verifier_data(token_id, field, verifier) -> (data: felt) {
+    func get_verifier_data(token_id, field, verifier, domain) -> (data: felt) {
     }
 
-    func set_verifier_data(token_id, field, data) {
+    func set_verifier_data(token_id, field, data, domain) {
     }
 
 }
