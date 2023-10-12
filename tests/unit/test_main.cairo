@@ -100,7 +100,7 @@ func test_set_domain_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
     tempvar starknet_id_contract;
     %{
         stop_prank_callable = start_prank(123)
-        ids.starknet_id_contract = deploy_contract("./lib/starknetid/src/StarknetId.cairo").contract_address
+        ids.starknet_id_contract = deploy_contract("./lib/old_identity/src/StarknetId.cairo").contract_address
     %}
 
     starknetid_contract.write(starknet_id_contract);

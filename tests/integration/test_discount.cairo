@@ -8,7 +8,7 @@ from src.naming.discounts import Discount
 func __setup__() {
     %{
         from starkware.starknet.compiler.compile import get_selector_from_name
-        context.starknet_id_contract = deploy_contract("./lib/starknetid/src/StarknetId.cairo").contract_address
+        context.starknet_id_contract = deploy_contract("./lib/old_identity/src/StarknetId.cairo").contract_address
         context.pricing_contract = deploy_contract("./src/pricing/main.cairo", [123]).contract_address
         logic_contract_class_hash = declare("./src/naming/main.cairo").class_hash
         context.naming_contract = deploy_contract("./lib/cairo_contracts/src/openzeppelin/upgrades/presets/Proxy.cairo", [logic_contract_class_hash,

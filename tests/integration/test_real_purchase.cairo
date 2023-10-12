@@ -9,7 +9,7 @@ from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 func __setup__() {
     %{
         from starkware.starknet.compiler.compile import get_selector_from_name
-        context.starknet_id_contract = deploy_contract("./lib/starknetid/src/StarknetId.cairo").contract_address
+        context.starknet_id_contract = deploy_contract("./lib/old_identity/src/StarknetId.cairo").contract_address
         context.eth_contract = deploy_contract("./lib/cairo_contracts/src/openzeppelin/token/erc20/presets/ERC20.cairo", [123, 123, 20, 2**127, 2**127, 456]).contract_address
         context.pricing_contract = deploy_contract("./src/pricing/main.cairo", [context.eth_contract]).contract_address
         logic_contract_class_hash = declare("./src/naming/main.cairo").class_hash
