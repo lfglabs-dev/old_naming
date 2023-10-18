@@ -428,6 +428,29 @@ func reset_subdomains{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
 // ADMIN EXTERNAL FUNCTIONS
 
 @external
+func set_expiry{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(domain: felt, expiry : felt, metadata : felt) {
+    alloc_locals;
+    // Verify that caller is admin
+    assert_is_admin();
+
+    let (hashed_domain) = hash_domain(1, new (domain));
+    let (domain_data: DomainData) = _domain_data.read(hashed_domain);
+
+    // Register
+    let (caller) = get_caller_address();
+    let data = DomainData(
+        domain_data.owner, domain_data.resolver, domain_data.address, expiry, domain_data.key, 0
+    );
+
+    // Write info on starknet.id and write info on storage data
+    write_domain_data(1, new (domain), data);
+
+    SaleMetadata.emit(domain, metadata);
+    starknet_id_update.emit(1, new (domain), domain_data.owner, expiry);
+    return ();
+}
+
+@external
 func set_admin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(address: felt) {
     // Verify that caller is admin
     assert_is_admin();

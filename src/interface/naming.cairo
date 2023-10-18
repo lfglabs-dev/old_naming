@@ -55,6 +55,9 @@ namespace Naming {
 
     // Admin setters
 
+    func set_expiry(domain: felt, expiry : felt, metadata : felt) {
+    }
+
     func set_admin(address: felt) {
     }
 
