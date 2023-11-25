@@ -1,6 +1,6 @@
 %lang starknet
 from starkware.cairo.common.uint256 import Uint256
-from starkware.cairo.common.math import assert_nn, assert_le, assert_le_felt, split_felt
+from starkware.cairo.common.math import assert_not_zero, assert_le, assert_le_felt, split_felt
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.cairo.common.bool import TRUE, FALSE
@@ -13,6 +13,7 @@ from cairo_contracts.src.openzeppelin.upgrades.library import Proxy
 from src.interface.starknetid import StarknetId
 from src.interface.pricing import Pricing
 from src.interface.resolver import Resolver
+from src.interface.auto_renew import AutoRenew
 from src.naming.discounts import Discount, discounts
 from src.naming.registration import (
     domain_to_addr_update,
@@ -43,6 +44,8 @@ from src.naming.utils import (
     DomainData,
     _admin_address,
     _pricing_contract,
+    _auto_renew_contract,
+    _auto_renew_discount_blacklist,
     _l1_contract,
     compute_new_expiry,
     get_amount_of_chars,
@@ -350,6 +353,45 @@ func renew{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     return ();
 }
 
+
+@external
+func renew_ar_discount{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    domain: felt
+) {
+    alloc_locals;
+
+    let (current_timestamp) = get_block_timestamp();
+    let (hashed_domain) = hash_domain(1, new (domain));
+    let (domain_data: DomainData) = _domain_data.read(hashed_domain);
+    // no need to verify the domain is expired
+    // assert_le(domain_data.expiry, current_timestamp);
+
+    // Get expiry and price
+    let expiry = compute_new_expiry(domain_data.expiry, current_timestamp, 90);
+    let data = DomainData(
+        domain_data.owner, domain_data.resolver, domain_data.address, expiry, domain_data.key, 0
+    );
+
+    // Register
+    let (caller) = get_caller_address();
+
+    // Assert automatic renewal is enabled by the caller
+    let (auto_renew_contract) = _auto_renew_contract.read();
+    let (allowance) = AutoRenew.get_renewing_allowance(auto_renew_contract, domain, caller);
+    assert_not_zero(allowance.low);
+    // Assert user didn't already claim
+    let (has_claimed) = _auto_renew_discount_blacklist.read(domain);
+    assert_not_zero(TRUE - has_claimed);
+    // Write that user claimed it
+    _auto_renew_discount_blacklist.write(domain, TRUE);
+
+    // Write info on starknet.id and write info on storage data
+    write_domain_data(1, new (domain), data);
+
+    starknet_id_update.emit(1, new (domain), domain_data.owner, expiry);
+    return ();
+}
+
 @external
 func transfer_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     domain_len: felt, domain: felt*, target_token_id: felt
@@ -475,6 +517,20 @@ func set_pricing_contract{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_
 
     // Write domain owner
     _pricing_contract.write(address);
+
+    return ();
+}
+
+
+@external
+func set_auto_renew_contract{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    address: felt
+) {
+    // Verify that caller is admin
+    assert_is_admin();
+
+    // Write domain owner
+    _auto_renew_contract.write(address);
 
     return ();
 }
