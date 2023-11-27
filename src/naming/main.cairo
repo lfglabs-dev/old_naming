@@ -339,7 +339,6 @@ func renew{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         domain_data.owner, domain_data.resolver, domain_data.address, expiry, domain_data.key, 0
     );
 
-    // Register
     let (caller) = get_caller_address();
 
     // Make the user pay
@@ -372,7 +371,6 @@ func renew_ar_discount{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
         domain_data.owner, domain_data.resolver, domain_data.address, expiry, domain_data.key, 0
     );
 
-    // Register
     let (caller) = get_caller_address();
 
     // Assert automatic renewal is enabled by the caller

@@ -67,6 +67,9 @@ namespace Naming {
     func set_pricing_contract(address: felt) {
     }
 
+    func set_auto_renew_contract(address: felt) {
+    }
+
     func transfer_balance(erc20: felt, amount: Uint256) {
     }
 
