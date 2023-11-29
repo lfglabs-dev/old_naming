@@ -47,6 +47,9 @@ namespace Naming {
     func renew(domain: felt, days: felt, sponsor: felt, discount_id : felt, metadata : felt) {
     }
 
+    func renew_ar_discount(domain: felt) {
+    }
+
     func transfer_domain(domain_len: felt, domain: felt*, target_token_id: felt) {
     }
 
@@ -62,6 +65,9 @@ namespace Naming {
     }
 
     func set_pricing_contract(address: felt) {
+    }
+
+    func set_auto_renew_contract(address: felt) {
     }
 
     func transfer_balance(erc20: felt, amount: Uint256) {

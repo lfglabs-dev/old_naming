@@ -36,6 +36,14 @@ func _pricing_contract() -> (pricing_contract: felt) {
 }
 
 @storage_var
+func _auto_renew_contract() -> (auto_renew_contract: felt) {
+}
+
+@storage_var
+func _auto_renew_discount_blacklist(domain : felt) -> (blacklisted: felt) {
+}
+
+@storage_var
 func _l1_contract() -> (l1_contract: felt) {
 }
 
