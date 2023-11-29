@@ -379,7 +379,11 @@ func renew_ar_discount{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
     assert_not_zero(allowance.low);
     // Assert user didn't already claim
     let (has_claimed) = _auto_renew_discount_blacklist.read(domain);
-    assert_not_zero(TRUE - has_claimed);
+    with_attr error_message(
+            "You already claimed your discount") {
+        assert_not_zero(TRUE - has_claimed);
+    }
+
     // Write that user claimed it
     _auto_renew_discount_blacklist.write(domain, TRUE);
 
