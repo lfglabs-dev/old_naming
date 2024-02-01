@@ -36,6 +36,10 @@ func _pricing_contract() -> (pricing_contract: felt) {
 }
 
 @storage_var
+func _stark_pricing_contract() -> (pricing_contract: felt) {
+}
+
+@storage_var
 func _auto_renew_contract() -> (auto_renew_contract: felt) {
 }
 

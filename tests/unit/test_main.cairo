@@ -5,6 +5,7 @@ from src.naming.main import (
     address_to_domain,
     set_admin,
     set_pricing_contract,
+    set_stark_pricing_contract,
     set_domain_owner,
     set_domain_to_resolver,
 )
@@ -15,6 +16,7 @@ from src.naming.utils import (
     _write_address_to_domain,
     _admin_address,
     _pricing_contract,
+    _stark_pricing_contract,
     _domain_data,
 )
 from src.naming.registration import starknetid_contract
@@ -88,6 +90,21 @@ func test_set_pricing_contract{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, r
     _admin_address.write(123);
     set_pricing_contract(1234);
     let (changed_address) = _pricing_contract.read();
+    assert changed_address = 1234;
+
+    %{ stop_prank_callable() %}
+
+    return ();
+}
+
+@external
+func test_set_stark_pricing_contract{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+    %{ stop_prank_callable = start_prank(123) %}
+
+    // test case : admin is caller
+    _admin_address.write(123);
+    set_stark_pricing_contract(1234);
+    let (changed_address) = _stark_pricing_contract.read();
     assert changed_address = 1234;
 
     %{ stop_prank_callable() %}

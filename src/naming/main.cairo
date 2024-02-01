@@ -44,6 +44,7 @@ from src.naming.utils import (
     DomainData,
     _admin_address,
     _pricing_contract,
+    _stark_pricing_contract,
     _auto_renew_contract,
     _auto_renew_discount_blacklist,
     _l1_contract,
@@ -523,6 +524,18 @@ func set_pricing_contract{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_
     return ();
 }
 
+@external
+func set_stark_pricing_contract{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    address: felt
+) {
+    // Verify that caller is admin
+    assert_is_admin();
+
+    // Write stark pricing contract
+    _stark_pricing_contract.write(address);
+
+    return ();
+}
 
 @external
 func set_auto_renew_contract{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
