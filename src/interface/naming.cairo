@@ -39,6 +39,10 @@ namespace Naming {
     func buy(token_id: felt, domain: felt, days: felt, resolver: felt, address: felt, sponsor: felt, metadata : felt) {
     }
 
+
+    func buy_with_stark(token_id: felt, domain: felt, days: felt, resolver: felt, address: felt, sponsor: felt, metadata : felt) {
+    }
+
     func buy_discounted(
         token_id: felt, domain: felt, days: felt, resolver: felt, address: felt, discount_id: felt, metadata : felt
     ) {
@@ -65,6 +69,9 @@ namespace Naming {
     }
 
     func set_pricing_contract(address: felt) {
+    }
+
+    func set_stark_pricing_contract(address: felt) {
     }
 
     func set_auto_renew_contract(address: felt) {

@@ -26,6 +26,7 @@ from src.naming.registration import (
     starknetid_contract,
     booked_domain,
     pay_buy_domain,
+    pay_buy_stark_domain,
     pay_buy_domain_discount,
     pay_renew_domain,
     mint_domain,
@@ -44,6 +45,7 @@ from src.naming.utils import (
     DomainData,
     _admin_address,
     _pricing_contract,
+    _stark_pricing_contract,
     _auto_renew_contract,
     _auto_renew_discount_blacklist,
     _l1_contract,
@@ -261,6 +263,32 @@ func buy{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     }
 
     pay_buy_domain(current_timestamp, days, caller, domain, sponsor);
+    SaleMetadata.emit(domain, metadata);
+    mint_domain(expiry, resolver, address, hashed_domain, token_id, domain);
+    return ();
+}
+
+
+@external
+func buy_with_stark{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    token_id: felt, domain: felt, days: felt, resolver: felt, address: felt, sponsor: felt, metadata : felt
+) {
+    alloc_locals;
+    let (hashed_domain, current_timestamp, expiry) = assert_purchase_is_possible(
+        token_id, domain, days
+    );
+
+    // stop front running/mev
+    let (booking_data: (owner: felt, expiry: felt)) = booked_domain.read(hashed_domain);
+    let booked = is_le(current_timestamp, booking_data.expiry);
+    let (caller) = get_caller_address();
+    if (booked == TRUE) {
+        with_attr error_message("Someone else booked this domain") {
+            assert booking_data.owner = caller;
+        }
+    }
+
+    pay_buy_stark_domain(current_timestamp, days, caller, domain, sponsor);
     SaleMetadata.emit(domain, metadata);
     mint_domain(expiry, resolver, address, hashed_domain, token_id, domain);
     return ();
@@ -523,6 +551,18 @@ func set_pricing_contract{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_
     return ();
 }
 
+@external
+func set_stark_pricing_contract{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    address: felt
+) {
+    // Verify that caller is admin
+    assert_is_admin();
+
+    // Write stark pricing contract
+    _stark_pricing_contract.write(address);
+
+    return ();
+}
 
 @external
 func set_auto_renew_contract{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(

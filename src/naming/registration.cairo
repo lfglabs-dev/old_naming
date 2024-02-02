@@ -15,6 +15,7 @@ from src.naming.utils import (
     hash_domain,
     _domain_data,
     _pricing_contract,
+    _stark_pricing_contract,
 )
 from cairo_contracts.src.openzeppelin.token.erc20.IERC20 import IERC20
 from src.naming.discounts import compute_discount
@@ -73,6 +74,27 @@ func pay_buy_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
         Referral.add_commission(referral_contract, price, sponsor, sponsored);
         return ();
     }
+
+    return ();
+}
+
+
+func pay_buy_stark_domain{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    current_timestamp, days, caller, domain, sponsor
+) -> () {
+    let (pricing_contract) = _stark_pricing_contract.read();
+    let (erc20, price) = Pricing.compute_buy_price(pricing_contract, domain, days);
+    let (naming_contract) = get_contract_address();
+    with_attr error_message("ERC20 transfer impossible: check your STRK balance") {
+        IERC20.transferFrom(erc20, caller, naming_contract, price);
+    }
+
+    // if (sponsor != 0) {
+    //     let (referral_contract) = _referral_contract.read();
+    //     let (sponsored) = get_caller_address();
+    //     Referral.add_commission(referral_contract, price, sponsor, sponsored);
+    //     return ();
+    // }
 
     return ();
 }

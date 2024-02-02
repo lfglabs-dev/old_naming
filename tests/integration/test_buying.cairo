@@ -47,6 +47,37 @@ func test_simple_buy{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuil
 }
 
 @external
+func test_stark_buy{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}() {
+    alloc_locals;
+    local starknet_id_contract;
+    local naming_contract;
+    tempvar pricing_contract;
+    %{
+        ids.starknet_id_contract = context.starknet_id_contract
+        ids.naming_contract = context.naming_contract
+        stop_prank_callable = start_prank(456, context.naming_contract)
+        stop_mock = mock_call(123, "transferFrom", [1])
+        ids.pricing_contract = context.pricing_contract
+        warp(1, context.naming_contract)
+    %}
+
+    let token_id = 1;
+    StarknetId.mint(starknet_id_contract, token_id);
+    // th0rgal encoded
+    let th0rgal_string = 28235132438;
+
+    Naming.set_stark_pricing_contract(naming_contract, pricing_contract);
+    Naming.buy_with_stark(naming_contract, token_id, th0rgal_string, 365, 0, 456, 0, 0);
+    let (addr) = Naming.domain_to_address(naming_contract, 1, new (th0rgal_string));
+    assert addr = 456;
+    %{
+        stop_prank_callable()
+        stop_mock()
+    %}
+    return ();
+}
+
+@external
 func test_simple_buy_fails_too_long{
     syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*
 }() {
